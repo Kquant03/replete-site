@@ -154,6 +154,7 @@ const PneumaContent: React.FC = () => {
   const [isPanelVisible, setIsPanelVisible] = useState(false);
   const [regenerationAttempts, setRegenerationAttempts] = useState(0);
   const MAX_REGENERATION_ATTEMPTS = 3;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/pneuma';
 
   const contentRef = useRef<HTMLDivElement>(null);
   const chatWindowRef = useRef<HTMLDivElement>(null);
@@ -267,7 +268,7 @@ const PneumaContent: React.FC = () => {
 
       console.log('API request:', apiRequest);
 
-      const response = await fetch('/api/pneuma', {
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(apiRequest),
