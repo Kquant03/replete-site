@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Mutex } from 'async-mutex';
+import axios from 'axios';
 import { generateUniqueId } from './generateUniqueId';
 import { initializeTokenizer, countTokens, estimateTokens } from './fastTokenizer';
 
@@ -216,44 +217,54 @@ async function makeApiCall(prompt: string, parameters: UserSettings, retries = 0
   try {
     console.log(`Attempting API call to ${TABBY_API_URL} (attempt ${retries + 1})`);
     
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 seconds timeout
-
-    const response = await fetch(`${TABBY_API_URL}/v1/completions`, {
+    console.log('Sending request with the following parameters:', {
+      url: `${TABBY_API_URL}/v1/completions`,
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer [REDACTED]'
+      },
+      data: {
+        model: "turbcat",
+        prompt: prompt.substring(0, 100) + '...', // Log only the first 100 characters of the prompt
+        ...parameters,
+        stop: ["<|eot_id|>", "<|end_header_id|>"],
+        stream: false,
+      },
+    });
+
+    const response = await axios({
+      method: 'post',
+      url: `${TABBY_API_URL}/v1/completions`,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${TABBY_API_KEY}`
       },
-      body: JSON.stringify({
+      data: {
         model: "turbcat",
         prompt: prompt,
         ...parameters,
         stop: ["<|eot_id|>", "<|end_header_id|>"],
         stream: false,
-      }),
-      signal: controller.signal
+      },
+      timeout: 60000 // 60 seconds timeout
     });
 
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.choices[0].text.trim();
-  } catch (error: unknown) {
+    return response.data.choices[0].text.trim();
+  } catch (error) {
     console.error(`API call error (attempt ${retries + 1}):`, error);
     
-    if (error instanceof Error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Axios error:', error.message);
+      console.error('Axios error config:', error.config);
+      if (error.response) {
+        console.error('Axios error response:', error.response.data);
+        console.error('Axios error status:', error.response.status);
+      }
+    } else if (error instanceof Error) {
       console.error('Error name:', error.name);
       console.error('Error message:', error.message);
       console.error('Error stack:', error.stack);
-      
-      if ('cause' in error && error.cause !== undefined) {
-        console.error('Error cause:', error.cause);
-      }
     } else {
       console.error('Non-Error object thrown:', error);
     }
