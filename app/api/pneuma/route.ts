@@ -479,5 +479,5 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-// Initialize the tokenizer
-initializeTokenizer('gpt-3.5-turbo').catch(console.error);
+// At the end of the file, update the initializeTokenizer call
+initializeTokenizer().catch(console.error);
