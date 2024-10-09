@@ -1,0 +1,35 @@
+# **Guide to Model Formats for Artificial Intelligence**
+
+*Model formats* refer to the way data is stored and processed by machine learning models. Different model formats have different advantages and trade-offs when it comes to performance, accuracy, and size. In this guide, we will explore some popular model formats used in artificial intelligence (AI) today.
+
+## Floating Point 32 (fp32)
+
+Floating point 32 (fp32) is a widely used model format in deep learning. It uses 32 bits to represent each number, providing high precision and dynamic range. However, its large memory footprint makes it less efficient for training and deploying large models. It's largely considered bulky and a waste of space considered to bf16
+
+## Half Precision (fp16)
+
+Half precision (fp16) is a compact model format that uses only 16 bits per number. This reduces memory usage and improves throughput, making it ideal for quantizing models after they've been converted to this format.
+
+## Base 16 floating point (bf16)
+
+Base 16 floating point (bf16) is the resulting format of most new models after a pre-train, fine-tune, or merge. This is something you'd run using ExLlama or Transformers model loaders...or you could convert it to f16 and then quantize it from there.
+
+## Activation-aware Weight Quantization (AWQ)
+
+Activation-aware Weight Quantization (AWQ) is a technique for running models in commercial settings, allowing multiple users to inference with it at the same time.
+
+## GPT-Generated Unified Format (gguf)
+
+GPT-Generated Unified Format (gguf) is the successor to ggml models. These are to be run on llama.cpp with CPU and System RAM inference.
+
+## (EXL2)
+
+A standalone Python/C++/CUDA implementation of Llama for use with 4-bit GPTQ weights, designed to be fast and memory-efficient on modern GPUs.
+
+## Quip-sharp (quip)
+
+A weights-only quantization method successing Quip, that is able to achieve near fp16 performance using only 2 bits per weight.
+
+## GPTQ
+
+Post-Training Quantization for GPT Models - A quantization method that has been around before I started in this community. It works with quite a few different GPU loaders like EXL2 and AutoGPTQ.

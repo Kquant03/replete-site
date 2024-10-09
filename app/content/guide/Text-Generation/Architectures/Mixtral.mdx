@@ -1,0 +1,35 @@
+import MDXImage from '../../../../components/MDXImage'
+
+# Mixtral and MoE: Using Multiple Models at the Same Time
+
+Mixtral, developed by Mistral.ai is based off an architecture that was developed in the 1990's called Mixture of Experts, or MoE for short. Essentially, it uses an entire model as a Feed Forward Network. You can read the full documentation [here](https://huggingface.co/blog/moe)
+
+These are some of my favorite models just because they tend to be the most creative, depending on what models you choose to implement into the MoE. Here's a brief rundown of how they work if you don't want to read the entire paper:
+
+The scale of a model is one of the most important axes for better model quality. Given a fixed computing budget, training a larger model for fewer steps is better than training a smaller model for more steps.
+
+Mixture of Experts enable models to be pretrained with far less compute, which means you can dramatically scale up the model or dataset size with the same compute budget as a dense model. In particular, a MoE model should achieve the same quality as its dense counterpart much faster during pretraining.
+
+So, what exactly is a MoE? In the context of transformer models, a MoE consists of two main elements:
+
+- Sparse MoE layers are used instead of dense feed-forward network (FFN) layers. MoE layers have a certain number of "experts" (e.g. 32 in my "frankenMoE"), where each expert is a neural network. In practice, the experts are FFNs, but they can also be more complex networks or even a MoE itself, leading to hierarchical MoEs!
+    
+- A gate network or router, that determines which tokens are sent to which expert. For example, in the image below, the token "More" is sent to the second expert, and the token "Parameters" is sent to the first network. As we'll explore later, we can send a token to more than one expert. How to route a token to an expert is one of the big decisions when working with MoEs - the router is composed of learned parameters and is pretrained at the same time as the rest of the network.
+
+At every layer, for every token, a router network chooses two of these groups (the "experts") to process the token and combine their output additively.
+
+<MDXImage src="/MOE.webp" alt="Switch Layer" width={1274} height={982} padding="15px" />
+
+MoE layer from the [Switch Transformers paper](https://arxiv.org/abs/2101.03961)
+
+So, to recap, in MoEs we replace every FFN layer of the transformer model with an MoE layer, which is composed of a gate network and a certain number of experts.
+
+Although MoEs provide benefits like efficient pretraining and faster inference compared to dense models, they also come with challenges:
+
+- Training: MoEs enable significantly more compute-efficient pretraining, but they've historically struggled to generalize during fine-tuning, leading to overfitting.
+
+- Inference: Although a MoE might have many parameters, only some of them are used during inference. This leads to much faster inference compared to a dense model with the same number of parameters. However, all parameters need to be loaded in RAM, so memory requirements are high. For example, [given a MoE like Mixtral 8x7B](https://huggingface.co/blog/moe), we'll need to have enough VRAM to hold a dense 47B parameter model. Why 47B parameters and not 8 x 7B = 56B? That's because in MoE models, only the FFN layers are treated as individual experts, and the rest of the model parameters are shared. At the same time, assuming just two experts are being used per token, the inference speed (FLOPs) is like using a 12B model (as opposed to a 14B model), because it computes 2x7B matrix multiplications, but with some layers shared (more on this soon).
+
+If all our tokens are sent to just a few popular experts, that will make training inefficient. In a normal MoE training, the gating network converges to mostly activate the same few experts. This self-reinforces as favored experts are trained quicker and hence selected more. To mitigate this, an auxiliary loss is added to encourage giving all experts equal importance. This loss ensures that all experts receive a roughly equal number of training examples. The following sections will also explore the concept of expert capacity, which introduces a threshold of how many tokens can be processed by an expert. In transformers, the auxiliary loss is exposed via the aux_loss parameter.
+
+If you want to create your own MoE, then you can install [Mergekit](https://github.com/arcee-ai/mergekit) and read about how to create your own .yml config [here](https://guide.repleteai.com/Text-Generation/Merging-Models/FrankenMoE).

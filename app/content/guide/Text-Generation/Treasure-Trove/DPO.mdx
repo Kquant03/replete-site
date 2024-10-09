@@ -1,0 +1,5 @@
+# Direct-Preference-Optimization: The Ultimate RLHF
+
+Direct Preference Optimization (DPO) is a technique used for fine-tuning large language models to align their outputs with human preferences. It involves using two models: the trained model (or policy model) and a reference model. During training, the goal is to make the trained model output higher probabilities for preferred answers and lower probabilities for rejected answers compared to the reference model. This way, the model is penalized for bad answers and rewarded for good ones, effectively aligning its outputs with the desired behavior. DPO treats this as a classification problem and uses binary cross-entropy objectives, making it a more stable, efficient, and computationally less demanding process compared to other reinforcement learning techniques like Proximal Policy Optimization (PPO).
+
+[A complete guide on DPO can be found here](https://towardsdatascience.com/fine-tune-a-mistral-7b-model-with-direct-preference-optimization-708042745aac), thanks for Mlabonne.

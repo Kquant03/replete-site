@@ -1,0 +1,14 @@
+import MDXImage from '../../../components/MDXImage'
+
+# SDXL Architecture: A Massive Improvement In Text2Image Technology.
+
+With SDXL, not only is it larger, but you're utilizing more than one model in the image generation process
+
+Similar to SD 1.5, you're taking random latent noise and then using conditioning such as input text or images to generate an entirely new image. The difference here is that latent noise is sent through two separate models in a novel architecture which is called "ensemble of experts". This isn't like Mixture of Experts though because you don't use two models at the same time...instead, the base model does the first 70-80% of the work, and then the refiner model takes that work and refines it in the last 20-30% of the iterative steps.
+
+<MDXImage 
+  src="/SDXLArch.webp" 
+  alt="Stable Diffusion XL Architecture" 
+  width={1358} 
+  height={375} 
+/>

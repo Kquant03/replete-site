@@ -1,0 +1,7 @@
+# RMSNorm: Removing What Is Considered Nonessential
+
+The key idea of RMSNorm is to simplify LayerNorm by removing the centering step. Instead of centering and scaling, RMSNorm just scales the inputs by the root mean square (RMS) value. Some argue that the centering step is not actually essential, and that just scaling by the RMS is enough to stabilize training.
+
+The main advantage of RMSNorm is that it requires less computation than LayerNorm, so it can make the training process faster, sometimes up to 64% faster according to some people's experiments on various tasks like machine translation, image captioning, etc. At the same time, RMSNorm achieves similar performance to LayerNorm in terms of accuracy.
+
+So in summary, RMSNorm is a simpler and more efficient way to normalize inputs in deep neural networks, which can speed up training without sacrificing too much accuracy. It could help make training large models more practical and scalable.

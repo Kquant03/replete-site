@@ -1,0 +1,11 @@
+# Rotary Position Embeddings: Finding Better Ways To Incorporate Positional Information
+
+The key idea with RoPE is to find a better way to incorporate "position information" into the Transformer model. Position information is important because the order of words in a sentence matters for understanding the meaning. For example, "The dog chased the cat" has a different meaning from "The cat chased the dog."
+
+The standard Transformer model uses a simple method to encode position information, but the authors of this paper propose a new method called "Rotary Position Embedding" or RoPE for short. RoPE works by rotating the word vectors (which are mathematical representations of words) by a certain angle that depends on the position of the word in the sentence.
+
+Some argue that RoPE has some nice properties:
+
+1. It can handle sequences of any length, unlike some other methods that are limited.
+2. The influence of one word on another decays as the distance between them increases, which makes sense intuitively.
+3. It can be combined with efficient "linear attention" methods that scale better to long sequences.

@@ -1,0 +1,98 @@
+# SadTalker: Making a Portrait Talk Using a Sound File
+
+SadTalker is a way to take a single portrait image, either real or generated, and use an audio file of someone speaking in order to have that portrait move its lips in sync with the words that are spoken.
+
+The installation process is pretty simple, so I'll walk you through it.
+
+## Linux Installation:
+
+### Step 1:
+
+- Install [Anaconda](https://www.anaconda.com/)
+- Install [Python 3.10.6](https://www.python.org/downloads/release/python-3106/)
+- Install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+
+### Step 2:
+
+Git clone the repository, create the env, and install the requirements:
+
+```
+git clone https://github.com/OpenTalker/SadTalker.git
+
+cd SadTalker 
+
+conda create -n sadtalker python=3.8
+
+conda activate sadtalker
+
+pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu113
+
+conda install ffmpeg
+
+pip install -r requirements.txt
+
+### Coqui TTS is optional for gradio demo. 
+### pip install TTS
+```
+
+### Step 3:
+
+Install models with bash script:
+
+`./scripts/download_models.sh`
+
+### Step 4:
+
+Run webui.sh
+
+`./SadTalker-main/webui.sh`
+
+
+### Step 5:
+
+Open the link provided in your terminal, and enjoy the program! You can find the recommended settings and usage guide [here](https://github.com/OpenTalker/SadTalker/blob/main/docs/best_practice.md)
+
+## Windows Installation:
+
+### Step 1:
+
+- Install [Python 3.10.6](https://www.python.org/downloads/release/python-3106/) and make sure that when you install it, you check the box labeled *add Python to PATH*.
+- Install [Git](https://git-scm.com/download/win)
+
+### Step 2:
+
+Install [Chocolatey](https://chocolatey.org/install) in order to install ffmpeg.
+
+Installing Chocolatey is pretty simple, at their website, there's a command that you paste into powershell and hit enter.
+
+Next, to install ffmpeg all you have to do is use powershell to run this command `choco install ffmpeg-full`
+
+When prompted, hit the "a" key to install the full version of ffmpeg.
+
+### Step 3:
+
+Install SadTalker into a drive of your choice.
+
+Use File Explorer to navigate to the place you want to install SadTalker, then right click in the empty space and click "Open in Terminal".
+
+In the terminal, run `git clone https://github.com/OpenTalker/SadTalker`.
+
+### Step 4:
+
+Install the checkpoints and other requirements for SadTalker.
+
+To do this, create a folder and name it checkpoints in your SadTalker folder.
+
+Download the [SadTalker models](https://drive.google.com/file/d/1gwWh45pF7aelNP_P78uDJL8Sycep-K7j/view?pli=1) zip file and extract them into the checkpoints folder.
+
+Download the [gfgpan](https://drive.google.com/file/d/19AIBsmfcHW6BRJmeqSFlG5fL445Xmsyi/edit) zip file and extract it into the checkpoints folder as well.
+
+### Step 5:
+
+Run the `webui.bat` file in your SadTalker folder.
+
+### Step 6:
+
+Click the link provided in your terminal and follow the best practices guide [here](https://github.com/OpenTalker/SadTalker/blob/main/docs/best_practice.md)
+
+That's everything, enjoy your new software!

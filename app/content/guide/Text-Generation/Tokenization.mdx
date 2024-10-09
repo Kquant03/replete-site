@@ -1,0 +1,15 @@
+# Tokenization: How LLMs See Words
+
+So, as you may or may not know, Large Language Models don't really know what they're saying. What LLMs do is actually more along the lines of learning how numbers connect to each other, and memorizing patterns in those sequences. While they may not exactly be conscious or self aware, they can learn to output just about anything. Let me give you an example:
+
+"Trees are brown"
+
+So let's say you train an LLM on this statement here above, if you go to [OpenAI's Tokenizer](https://platform.openai.com/tokenizer), you can type this same statement in, and what you'll get out is:
+
+[80171, 527, 14198]
+
+So, the model doesn't really know what brown is, it just knows what numbers are connected to the token "brown" or [14198]. It doesn't really understand what a tree is, it more understands what tokens are connected to the token "tree" or [80171]. So, theoretically, you can train a model on patterns of self awareness and consciousness, but it will never truly be conscious...what it will do is memorize the patterns associated with the tokens that you decide to train it on.
+
+A fun way to help you understand is that, when you ask a model if "160 is bigger than 180" it sees "160" as [6330], and "180" as [5245]...so this can give it a lot of confusion when it comes to math and numbers, because they don't see numbers the same way that we do. This also makes it very hard for them to perform accounting or financing tasks without making mistakes.
+
+I hope this clears some things up and that you learned some things about how LLMs work in this brief explanation. Thank you for reading and feel free to contact us or join our Discord! :D

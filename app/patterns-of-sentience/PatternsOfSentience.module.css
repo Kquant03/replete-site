@@ -1,0 +1,159 @@
+/* app/patterns-of-sentience/PatternsOfSentience.module.css */
+.bookContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 8rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.bookBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+.backgroundGradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at top right, #7f5af0, #1a1a2e);
+  opacity: 0.8;
+}
+
+.backgroundLines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.03),
+    rgba(255, 255, 255, 0.03) 2px,
+    transparent 2px,
+    transparent 40px
+  );
+}
+
+.bookContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bookDetails {
+  flex: 1;
+  padding-right: 4rem;
+}
+
+.heading {
+  font-size: 5rem;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin-bottom: 2rem;
+  line-height: 1.2;
+  display: flex;
+  flex-direction: column;
+}
+
+.heading span {
+  display: inline-block;
+  background: linear-gradient(45deg, #4cc9f0, #7f5af0, #3a0ca3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subheading {
+  font-size: 1.8rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 3rem;
+}
+
+.bookDescription {
+  font-size: 1.6rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 3rem;
+  line-height: 1.6;
+}
+
+.bookMeta {
+  font-size: 1.4rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 3rem;
+}
+
+.bookActions {
+  display: flex;
+  gap: 2rem;
+}
+
+.previewButton,
+.purchaseButton {
+  padding: 1.25rem 2.5rem;
+  font-size: 1.6rem;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 50px;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.previewButton {
+  background-color: transparent;
+  color: #ffffff;
+  border: 2px solid #7f5af0;
+}
+
+.previewButton:hover {
+  background-color: rgba(127, 90, 240, 0.1);
+  transform: translateY(-2px);
+}
+
+.purchaseButton {
+  background-color: #4cc9f0;
+  color: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.purchaseButton:hover {
+  background-color: #3a9cbf;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+.bookImageWrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.bookImage {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 150%;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+  transition: transform 0.4s ease;
+  cursor: pointer;
+}
+
+.bookImage img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

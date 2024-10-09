@@ -1,0 +1,32 @@
+.imageContainer {
+    position: relative;
+  }
+  
+  .placeholder {
+    background-color: #f0f0f0;
+    animation: pulse 1.5s infinite ease-in-out;
+  }
+  
+  .image {
+    transition: opacity 0.3s ease-in-out;
+  }
+  
+  .loading {
+    opacity: 0;
+  }
+  
+  .loaded {
+    opacity: 1;
+  }
+  
+  @keyframes pulse {
+    0% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0.6;
+    }
+  }

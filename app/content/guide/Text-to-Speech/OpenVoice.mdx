@@ -1,0 +1,53 @@
+# OpenVoice: Clone Any Voice in Any Style and Any Language
+
+From the creators of OpenVoice: "OpenVoice has been powering the instant voice cloning capability of myshell.ai since May 2023. Until Nov 2023, the voice cloning model has been used tens of millions of times by users worldwide, and witnessed the explosive user growth on the platform."
+
+This software enables its user to take an audio file of a voice, clone it, and make it say anything, with any tone. I will go over the installation guide here.
+
+**NOTE:** You need to install git for this to work, access the installation instructions [here](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+
+(Best to create a conda env for this, not doing so could cause you to run into problems later with other python installs)
+To create a conda env, you need to [install conda](https://conda.io/projects/conda/en/latest/user-guide/install/linux.html) first, if you haven't done so already.
+
+### Step 1:
+
+Clone the repository wherever you'd like it to be:
+
+`git clone https://github.com/myshell-ai/OpenVoice/blob/main/docs/USAGE.md`
+
+### Step 2:
+
+Create a conda env for the software:
+
+`conda create -n openvoice python=3.9`
+
+### Step 3:
+
+Activate the conda env:
+
+`conda activate openvoice`
+
+### Step 4:
+
+Run the following command:
+
+`git clone git@github.com:myshell-ai/OpenVoice.git`
+
+### Step 5:
+
+**before doing this step** open the setup.py and the requirements.txt and change the numpy version to 1.26.4, then save it.
+
+Use cd to navigate to your OpenVoice folder and then run `pip install -e .`
+
+### Step 6: 
+
+Download [checkpoints](https://myshell-public-repo-hosting.s3.amazonaws.com/openvoice/checkpoints_1226.zip) and extract them into a checkpoints folder in the OpenVoice folder
+
+### Step 7:
+
+Run `python -m openvoice_app --share` and open the link that pops up in your terminal.
+
+That should be everything! Enjoy your experience with OpenVoice!
+
+
+

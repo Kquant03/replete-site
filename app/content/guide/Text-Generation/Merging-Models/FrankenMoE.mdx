@@ -1,0 +1,80 @@
+# FrankenMoE: MoE, With Random Routing
+
+Mergekit had an update awhile ago, which makes it capable of creating Sparse Mixture of Experts models. In a Sparse Mixture of Experts, you call upon different models throughout a singular output to average the best question between them. I would recommend reading [Rombodawg's Guide](https://docs.google.com/document/d/1_vOftBnrk9NRk5h10UqrfJ5CDih9KBKL61yvrZtVWPE/edit?pli=1) on it...then I would also read [Aightbit's Addendum](https://pastebin.com/1a8rByRm).
+
+So, the model looks a lot larger, but really you're not inferencing with that much, normally it's an 8x7B, so you're only ever using 2 7B models at once. [It's easier if you read about it here](https://huggingface.co/blog/moe), as it's a pretty complex thing to explain.
+
+I call this a frankenMoE because in [my merges](https://huggingface.co/Kquant03/Buttercup-4x7B-GGUF) the router is not trained with the experts like in a proprietary model. I will keep this page updated, in case there's a method found to fix this.
+
+For these models, you want to prompt for what you want each model to be responsible for within the resulting MoE, like so:
+
+```
+base_model: alnrg2arg/test2_4
+gate_mode: hidden
+dtype: bfloat16
+experts:
+  - source_model: andysalerno/openchat-nectar-0.3
+    positive_prompts:
+    - "helpful"
+    - "Relevant"
+    - "Factual"
+    - "Precise"
+    - "Descriptive"
+  - source_model: alnrg2arg/test2_4
+    positive_prompts:
+    - "Math"
+    - "Science"
+    negative_prompts:
+    - "inaccurate"
+    - "incorrect"
+  - source_model: abideen/NexoNimbus-7B
+    positive_prompts:
+    - "discuss"
+    - "chat"
+    - "culture"
+    - "world"
+    negative_prompts:
+    - "Sorry"
+    - "As an AI"
+    - "cannot"
+    - "not capable"
+  - source_model: mlabonne/NeuralDaredevil-7B
+    positive_prompts:
+    - "calculate"
+    - "compute"
+    - "solve"
+    - "work"
+    negative_prompts:
+    - "mistake"
+    - "inaccurate"
+  - source_model: nfaheem/Marcoroni-7b-DPO-Merge
+    positive_prompts:
+    - "organize"
+    - "categorize"
+    - "label"
+    - "document"
+  - source_model: alnrg2arg/test2_4
+    positive_prompts:
+    - "form"
+    - "connect"
+    - "try"
+    negative_prompts:
+    - "cannot"
+    - "incapable"
+  - source_model: mlabonne/Beagle14-7B
+    positive_prompts:
+    - "percieve"
+    - "discern"
+    - "recognize"
+    negative_prompts:
+    - "don't"
+    - "cannot"
+  - source_model: eren23/slerp-test-turdus-beagle
+    positive_prompts:
+    - "core"
+    - "common"
+    - "basic"
+    - "intuitive"
+    negative_prompts:
+    - "boring"
+    - "lifeless"

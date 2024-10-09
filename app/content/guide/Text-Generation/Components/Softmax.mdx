@@ -1,0 +1,10 @@
+# Softmax: Reducing Attention To Probability
+
+According to the some, Softmax is an important function used in transformers for the following reasons:
+
+- Attention Weights: It converts the raw attention scores (logits) into a probability distribution over the input tokens. This allows the model to assign higher weights to more relevant tokens and lower weights to less relevant ones when calculating attention.
+- Probability Distribution: Softmax ensures the attention scores form a valid probability distribution where all values are between 0 and 1 and sum to 1. This is crucial for correctly weighing the importance of input tokens.
+- Stabilizing Gradients: The softmax function has a smooth gradient, which helps stabilize gradients during training of the deep transformer networks using backpropagation. This makes it easier for the model to learn and adjust parameters.
+- Preventing Exploding/Vanishing Gradients: The article mentions that an important reason to use softmax is to prevent issues like exploding or vanishing gradients during training.
+
+In summary, softmax plays a key role in transformers by converting attention scores to probabilities, enabling the self-attention mechanism to work effectively, and providing numerical stability during training of these large neural network models.

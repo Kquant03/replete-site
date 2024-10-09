@@ -1,0 +1,12 @@
+# Phi: Textbooks Are All You Need
+
+Phi-2 and Phi-3 are smaller variants of language models which have been created by Microsoft. They have been trained on a much smaller amount of textbook data, along with synthetic data which has been manually curated.
+
+Somehow, with half the data with half the parameter count, Phi models seem to punch way higher than their weight class. The theory behind this is that data quality is much, much more important than the quantity of data you gather. This is highlighted in the publications: [Textbooks Are All You Need](https://www.microsoft.com/en-us/research/publication/textbooks-are-all-you-need/) and [Textbooks Are All You Need II](https://www.microsoft.com/en-us/research/publication/textbooks-are-all-you-need-ii-phi-1-5-technical-report/)
+
+After some research, the only difference from Llama to Phi/Phi-1.5/Phi-2 are the PhiDecoderLayer, where they use PhiAttention, and PhiMLP layers.
+
+Phi-3, on the other hand...Phi3SuScaledRotaryEmbedding and Phi3YarnScaledRotaryEmbedding, where they are used to extend the context of the rotary embeddings...while the query, key and values are fused, and the MLP’s up and gate projection layers are also fused.
+
+I couldn't find a visualizer for any of these models but I might be able to work on creating one, myself.
+

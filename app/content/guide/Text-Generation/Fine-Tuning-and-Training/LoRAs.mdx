@@ -1,0 +1,13 @@
+# LoRA: Efficiently and Cheaply Fine-Tune Large Language Models
+
+LoRA, or Low-Rank Adaptation, is a technique for efficiently adapting large language models to perform better on specific tasks. Language models like GPT-3 are trained on huge amounts of general text data, allowing them to perform well on many different language tasks out-of-the-box. However, their performance can be improved for particular applications by further training them on task-specific data. Traditionally, this adaptation requires training all 175 billion parameters of the model, which consumes a lot of memory and storage. LoRA makes this more efficient by training only a small number of extra parameters for each task, while freezing most of the original model parameters. This reduces the task-specific parameters that need to be trained and stored by 10,000 times, significantly lowering the computational cost, while still matching the performance of full model training. This makes it more practical to customize large language models for a wide variety of applications.
+
+When training a LoRA on axolotl, you may end up with a small file which is known as an adapter, you can either apply this during inference, or merge it directly onto the base model in order to permanently apply it.
+
+If you want to just use it during inference, you can save the entire folder into your loras directory for oobabooga webui. Then, when loading a model, you can apply this lora using the top-right dropdown menu in the models tab.
+
+If you want to merge it directly onto the model, then after you're finished training in axolotl, you can pass this command:
+
+`python3 -m axolotl.cli.merge_lora your_config.yml --lora_model_dir="./completed-model"`
+
+Make sure to replace "your_config.yml" with the path to the config for your LoRA adapter, then after `--lora_model_dir=` you can put the directory for your adapter in quotations.

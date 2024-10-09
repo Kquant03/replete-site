@@ -1,0 +1,36 @@
+# Prompting: The first step in image generation
+
+### What is prompting?
+Prompting is a fancy word that means "the way in which you instruct the bot on how to accomplish tasks, and what task the bot should be accomplishing".
+
+There is a large portion of the community who believes that you can just throw a thousand tokens into your positive prompt, and the A.I. should be able to recognize exactly what you want.
+
+This is not the case, by any means. A.I. art is not the same as text generation. In fact, it is actually better to be concise, use as little tokens as possible...and depending on what model you use, you may want to use a mix of natural language, and [Booru Tags](https://github.com/DominikDoom/a1111-sd-webui-tagcomplete).
+
+## SD 1.5 Verus SDXL 1.0
+
+Would you think that for different architectures of models, you should prompt them differently?
+
+The answer to this question would be yes. An example of this would be the architectures Stable Diffusion 1.5 and Stable Diffusion XL 1.0 ...these models accept dfferent types of input. SD 1.5 responds best to 100% booru tags, while SDXL 1.0 is best with a mix of booru tags and just normal english sentence structure.
+
+## How do these two styles look when compared?
+
+An SD 1.5 prompt could look something like: "(high quality, masterpiece:1.2) absurdres, 1girl, golden hour, highly detailed, anime cell, by Makoto Shinkai"
+
+An SDXL 1.0 prompt would look more like: "A young woman smiling at the viewer, at golden hour. Animated by Makoto Shinkai."
+
+A final note on how they differ is that you want to use as little negative prompting for SDXL 1.0 as possible, while for SD 1.5 you want to use as much negative prompting without overfitting as you can.
+
+## What about dynamic prompts?
+This is an extension that allows you to pick random tokens to use in your generations, in order to get random grids of images. It can also help to get concepts for characters if you use the right wildcards with it.
+You can find [dynamic prompts here](https://github.com/adieyal/sd-dynamic-prompts), and you can find [wildcards here](https://github.com/AUTOMATIC1111/stable-diffusion-webui-wildcards).
+
+Read their individual github readme documents, the respective developers wrote them for a reason.
+
+Another important note is that the very first token in your prompt will have the heaviest weight, you can adjust this by weighting tokens at the end of your prompt...so let's say you have `masterpiece` at the end of your prompt. You can change it to `(masterpiece:1.2)` to add 20% weight to that word, resulting in the model responding to it more. I referenced this technique earlier in this page.
+
+Finally, as a last note, you can reference things in a1111. Let's say I want to reference Lara Croft from Tomb Raider:
+`Lara Croft \(Tomb Raider\), Tomb Raider \(video game\),` is a good prompt for this.
+the ```\(\)``` is a referencing tool in A1111, and it helps trainers teach models to reference things...so like `Guts \(Berserk\), Guts \(character\),` would be a good prompt for the main character from the Berserk series, Guts.
+
+### I hope that this guide on prompting helps you to better understand exactly how A1111 and Stable Diffusion handle prompting. Good luck with your future generations!

@@ -1,0 +1,31 @@
+# DARE: An Augmented TIES Merge method
+
+Similar to TIES, it sparsifies the task vectors to reduce inference. The only difference is that DARE using random pruning with a novel rescaling to better match performance of the original model.
+
+I've seen it used to take two different models that ace different benchmarks.
+
+So like a model with high GSM8k and another model with high TruthfulQA can be merged with DARE to get the best of both scores.
+
+A typical script will look like so:
+
+```
+models:
+  - model: mistralai/Mistral-7B-v0.1
+    # No parameters necessary for base model
+  - model: samir-fama/SamirGPT-v1
+    parameters:
+      density: 0.53
+      weight: 0.4
+  - model: abacusai/Slerp-CM-mist-dpo
+    parameters:
+      density: 0.53
+      weight: 0.3
+  - model: EmbeddedLLM/Mistral-7B-Merge-14-v0.2
+    parameters:
+      density: 0.53
+      weight: 0.3
+merge_method: dare_ties
+base_model: mistralai/Mistral-7B-v0.1
+parameters:
+  int8_mask: true
+dtype: bfloat16

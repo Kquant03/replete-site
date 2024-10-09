@@ -1,0 +1,31 @@
+# Mastering A.I. Animation: A Guide by Stanley Sebastian
+
+Over the course of 6 months, I learned that there are dozens of different tools and techniques that go into creating A.I. animations.
+
+From Keyframing, to Deforum, to batch upscaling, to Davinci Resolve, there is a huge workflow that begins and ends in Post-Production software, believe it or not.
+
+To start, [install Davinci Resolve](https://www.blackmagicdesign.com/products/davinciresolve). This is what I use to mark my keyframes.
+
+Once you have it installed, download the song you'd like to sync your animation to, in mp3 or mp4 format. (.wav or MOV and other formats will work too, likely!)
+
+Place the song into a 30fps project in Davinci Resolve. Place markers on the timeline in order to tell you which frames need to be scripted.
+
+Now, open Deforum. I referenced Deforum in the earlier page I wrote about animation, to which HarroweD has written guides about.
+
+You'll want to set up a 15fps project in the UI for however long you intend your animation to be. Normally, I do 60 seconds maximum, because that's what Tiktok allows for. It's easier to get discovery on there than it is on YouTube, but you can do long-format videos on YouTube, at least.
+
+To transfer from 30fps in Davinci Resolve to 15fps in Deforum, you will want to do the following equation on the marker.
+
+```((Seconds x 30) + leftover frames)/2```
+
+So for a marker at 1 second and 14 frames...the value would equal 22.
+
+To script a keyframe at that point you would mark it as frame 22 in deforum.
+
+You apply this technique to every marker in Davinci Resolve, in chronological order. Keyframing normally takes me a day or two for a minute of footage.
+
+A script will normally consist of some 800 or 1000 markers...just to put that into perspective. Once you're done rendering out an animation, you can just drop it over the sound in Davinci Resolve because you manually synced the motion yourself, by hand, using the keyframing strategy. If you want to upscale them, there's a tab for batch upscale in A1111. Flip over to the img2img tab for this, and hit the batch tab. Now, just need to set your input and output folders then use good Img2Img settings. I like 0.42 denoise, Euler A sampler, and 1.5x upscale size with ~40 sampling steps.
+
+Additionally, if you'd like a less "flickery" software application for A.I. animation...you can [set up ComfyUI.](https://youtu.be/KTPLOqAMR0s?si=RAOngoxzsVBZUPWU) Then you can get a workflow set up wiith it which I will leave [a youtube tutorial for here!](https://www.youtube.com/watch?v=iucrcWQ4bnE) ComfyUI is used for just image generation, too. It offers a lot of creative freedom. I prefer a1111 for simplicity's sake.
+
+Finally, if you'd like to try using Parseq to sync your keyframes automatically to Deforum, [here is the site for that!](https://sd-parseq.web.app/?docId=doc-871aef32-1383-4fb0-9b81-1dd2265273ad)

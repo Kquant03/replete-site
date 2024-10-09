@@ -1,0 +1,5 @@
+# Sliding Window Attention: An Old Way To Increase Context length
+
+Sliding Window Attention is an attention pattern for attention-based models. It was proposed as part of the Longformer architecture. It is what allowed Mistral-7B v0.1 to "reach 32k context". In my experiments it only ever was able to reach about 16k but that's besides the point.
+
+The sliding window attention pattern employs a fixed-size window attention surrounding each token. Using multiple stacked layers of such windowed attention results in a large receptive field, where top layers have access to all input locations and have the capacity to build representations that incorporate information across the entire input. 

@@ -1,0 +1,5 @@
+# PPO: Proximal Policy Optimization
+
+Proximal Policy Optimization (PPO) is a reinforcement learning algorithm that aims to improve upon traditional policy gradient methods by making the policy updates more stable and sample-efficient. The key idea is to constrain the policy updates to a "trust region" around the current policy, ensuring that the new policy doesn't deviate too much from the old one. This is achieved either by clipping the objective function (PPO-Clip variant) or by adding an adaptive penalty term that discourages large policy changes (PPO-Penalty variant). By keeping the policy updates within a trusted region, PPO strikes a balance between making significant progress and avoiding drastic, destabilizing changes that could hinder learning.
+
+If you'd like to try out PPO for yourself, [here](https://huggingface.co/docs/trl/main/en/ppo_trainer) is the PPO trainer!

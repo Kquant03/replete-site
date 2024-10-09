@@ -1,0 +1,11 @@
+# Model Stock, The Best Method For Merging Models
+
+Using Model Stock, you can merge models in a much more stable way. Here's what the config looks like:
+
+```
+models:
+  - model: cognitivecomputations/dolphin-2.8-experiment26-7b
+  - model: NousResearch/Hermes-2-Pro-Mistral-7B
+merge_method: model stock
+base_model: mistralai/Mistral-7B-v0.1
+dtype: bfloat16
