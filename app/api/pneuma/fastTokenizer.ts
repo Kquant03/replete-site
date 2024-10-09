@@ -1,4 +1,4 @@
-import { encoding_for_model, TiktokenModel, Tiktoken } from 'tiktoken';
+import type { TiktokenModel } from 'tiktoken';
 
 // Define the Message type
 type Message = {
@@ -7,24 +7,25 @@ type Message = {
   content: string;
 };
 
-let tokenizer: Tiktoken;
+let tokenizer: any;
 
-export function initializeTokenizer(model: TiktokenModel = 'gpt-3.5-turbo') {
+export async function initializeTokenizer(model: TiktokenModel = 'gpt-3.5-turbo') {
   if (!tokenizer) {
-    tokenizer = encoding_for_model(model);
+    const tiktoken = await import('tiktoken');
+    tokenizer = await tiktoken.encoding_for_model(model);
   }
 }
 
-export function countTokens(text: string): number {
+export async function countTokens(text: string): Promise<number> {
   if (!tokenizer) {
-    initializeTokenizer();
+    await initializeTokenizer();
   }
   return tokenizer.encode(text).length;
 }
 
-export function estimateTokens(messages: Message[], systemPrompt: string): number {
+export async function estimateTokens(messages: Message[], systemPrompt: string): Promise<number> {
   if (!tokenizer) {
-    initializeTokenizer();
+    await initializeTokenizer();
   }
 
   let tokenCount = 0;

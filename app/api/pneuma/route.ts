@@ -168,9 +168,9 @@ setInterval(() => {
   globalQueue.cleanup();
 }, 60000);
 
-function pruneMessages(messages: Message[], systemPrompt: string): Message[] {
+async function pruneMessages(messages: Message[], systemPrompt: string): Promise<Message[]> {
   const prunedMessages = [...messages];
-  let totalTokens = estimateTokens(prunedMessages, systemPrompt);
+  let totalTokens = await estimateTokens(prunedMessages, systemPrompt);
 
   console.log(`Initial message count: ${prunedMessages.length}`);
   console.log(`Initial total tokens: ${totalTokens}`);
@@ -182,12 +182,12 @@ function pruneMessages(messages: Message[], systemPrompt: string): Message[] {
     console.log(`Token count (${totalTokens}) exceeds limit (${TOKEN_LIMIT}). Attempting to remove earliest ${MESSAGES_TO_REMOVE} messages.`);
     
     const removedMessages = prunedMessages.splice(0, MESSAGES_TO_REMOVE);
-    const removedTokens = estimateTokens(removedMessages, '');
+    const removedTokens = await estimateTokens(removedMessages, '');
     
     console.log(`Removed messages:`, removedMessages);
     console.log(`Tokens in removed messages: ${removedTokens}`);
 
-    totalTokens = estimateTokens(prunedMessages, systemPrompt);
+    totalTokens = await estimateTokens(prunedMessages, systemPrompt);
 
     console.log(`Updated message count: ${prunedMessages.length}`);
     console.log(`Updated total tokens: ${totalTokens}`);
@@ -300,7 +300,7 @@ async function processChatRequest(chatState: ChatState, userInput: string, userN
     console.log(`Message count before pruning: ${updatedMessages.length}`);
 
     // Step 1: Prune messages
-    const prunedMessages = pruneMessages(updatedMessages, chatState.systemPrompt);
+    const prunedMessages = await pruneMessages(updatedMessages, chatState.systemPrompt);
     
     console.log('Messages after pruning:', JSON.stringify(prunedMessages, null, 2));
     console.log(`Message count after pruning: ${prunedMessages.length}`);
@@ -381,7 +381,7 @@ ${AI_NAME}:`;
 
   console.log('Generating AI response with prompt:');
   console.log(prompt);
-  console.log(`Estimated token count: ${countTokens(prompt)}`);
+  console.log(`Estimated token count: ${await countTokens(prompt)}`);
 
   const response = await makeApiCall(prompt, userSettings);
   
@@ -398,7 +398,10 @@ ${AI_NAME}:`;
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    console.log('Received POST request to /api/pneuma');
     const body = await request.json();
+    console.log('Request body:', JSON.stringify(body, null, 2));
+
     if (!body || typeof body !== 'object') {
       throw new Error('Invalid request body');
     }
@@ -477,4 +480,4 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 }
 
 // Initialize the tokenizer
-initializeTokenizer('gpt-3.5-turbo');
+initializeTokenizer('gpt-3.5-turbo').catch(console.error);
