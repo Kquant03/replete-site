@@ -39,6 +39,11 @@ type Message = {
   content: string;
 };
 
+type ChatState = {
+  messages: Message[];
+  systemPrompt: string;
+};
+
 type UserSettings = {
   temperature: number;
   top_p: number;
@@ -50,12 +55,14 @@ type UserSettings = {
 
 type QueueItem = {
   id: string;
-  messages: Message[];
+  chatState: ChatState;
   userInput: string;
   userName: string;
+  isRegeneration: boolean;
+  editedMessageId: string | null;
   userSettings: UserSettings;
   status: 'queued' | 'processing' | 'completed' | 'error';
-  result?: string;
+  result?: ChatState | { error: string };
   timestamp: number;
 };
 
@@ -64,15 +71,15 @@ class Queue {
   private processing: Map<string, QueueItem> = new Map();
   private completedItems: Map<string, QueueItem> = new Map();
   private MAX_CONCURRENT_REQUESTS = 3;
-  private COMPLETED_ITEM_TTL = 300000; // 5 minutes
+  private COMPLETED_ITEM_TTL = 60000; // Time to keep completed items (in milliseconds)
   private totalRequestsReceived = 0;
   private mutex = new Mutex();
 
-  async enqueue(messages: Message[], userInput: string, userName: string, userSettings: UserSettings): Promise<{ id: string; position: number }> {
+  async enqueue(chatState: ChatState, userInput: string, userName: string, isRegeneration: boolean = false, editedMessageId: string | null = null, userSettings: UserSettings): Promise<{ id: string; position: number }> {
     return await this.mutex.runExclusive(() => {
       const id = generateUniqueId();
       this.totalRequestsReceived++;
-      const item: QueueItem = { id, messages, userInput, userName, userSettings, status: 'queued', timestamp: Date.now() };
+      const item: QueueItem = { id, chatState, userInput, userName, isRegeneration, editedMessageId, userSettings, status: 'queued', timestamp: Date.now() };
       this.queue.push(item);
       const position = this.queue.length;
       logger.info(`Enqueued request ${id} at position ${position}. Total requests: ${this.totalRequestsReceived}`);
@@ -100,8 +107,8 @@ class Queue {
       const item = this.processing.get(id);
       if (!item) throw new Error(`Item ${id} not found in processing queue`);
 
-      const response = await generateAIResponse(item.messages, item.userInput, item.userName, item.userSettings);
-      item.result = response;
+      const updatedChatState = await processChatRequest(item.chatState, item.userInput, item.userName, item.isRegeneration, item.editedMessageId, item.userSettings);
+      item.result = updatedChatState;
       item.status = 'completed';
       await this.completeRequest(id);
     } catch (error: unknown) {
@@ -110,7 +117,7 @@ class Queue {
         const item = this.processing.get(id);
         if (item) {
           item.status = 'error';
-          item.result = error instanceof Error ? error.message : 'An unexpected error occurred';
+          item.result = { error: error instanceof Error ? error.message : 'An unexpected error occurred' };
           this.completedItems.set(id, item);
           this.processing.delete(id);
         }
@@ -147,28 +154,29 @@ class Queue {
   getStatus(id: string): 'queued' | 'processing' | 'completed' | 'error' | 'not_found' {
     if (this.queue.some(item => item.id === id)) return 'queued';
     if (this.processing.has(id)) return 'processing';
-    if (this.completedItems.has(id)) {
-      const item = this.completedItems.get(id);
-      return item?.status === 'error' ? 'error' : 'completed';
-    }
-    return 'not_found';
+    if (this.completedItems.has(id)) return 'completed';
+    const item = this.completedItems.get(id);
+    return item?.status === 'error' ? 'error' : 'not_found';
   }
 
-  getResult(id: string): string | null {
+  getResult(id: string): ChatState | { error: string } | null {
     const completedItem = this.completedItems.get(id);
-    return completedItem?.result || null;
+    if (completedItem && completedItem.result) {
+      if (typeof completedItem.result === 'object' && 'error' in completedItem.result) {
+        return { error: completedItem.result.error };
+      }
+      return completedItem.result as ChatState;
+    }
+    return null;
   }
 
   cleanup() {
     const now = Date.now();
-    let removedCount = 0;
     this.completedItems.forEach((value, key) => {
       if (now - value.timestamp > this.COMPLETED_ITEM_TTL) {
         this.completedItems.delete(key);
-        removedCount++;
       }
     });
-    logger.info(`Cleaned up ${removedCount} completed items from the queue`);
   }
 
   getTotalQueueLength(): number {
@@ -183,14 +191,14 @@ setInterval(() => {
   globalQueue.cleanup();
 }, 60000);
 
-async function pruneMessages(messages: Message[]): Promise<Message[]> {
+async function pruneMessages(messages: Message[], systemPrompt: string): Promise<Message[]> {
   const prunedMessages = [...messages];
-  let totalTokens = await estimateTokens(prunedMessages, '');
+  let totalTokens = await estimateTokens(prunedMessages, systemPrompt);
 
   logger.info(`Initial message count: ${prunedMessages.length}, Initial total tokens: ${totalTokens}`);
 
   const TOKEN_LIMIT = 6200;
-  const MESSAGES_TO_REMOVE = 2;
+  const MESSAGES_TO_REMOVE = 6;
 
   while (totalTokens > TOKEN_LIMIT && prunedMessages.length > MESSAGES_TO_REMOVE) {
     logger.info(`Token count (${totalTokens}) exceeds limit (${TOKEN_LIMIT}). Attempting to remove earliest ${MESSAGES_TO_REMOVE} messages.`);
@@ -200,7 +208,7 @@ async function pruneMessages(messages: Message[]): Promise<Message[]> {
     
     logger.info(`Removed messages: ${JSON.stringify(removedMessages)}, Tokens in removed messages: ${removedTokens}`);
 
-    totalTokens = await estimateTokens(prunedMessages, '');
+    totalTokens = await estimateTokens(prunedMessages, systemPrompt);
 
     logger.info(`Updated message count: ${prunedMessages.length}, Updated total tokens: ${totalTokens}`);
 
@@ -263,8 +271,101 @@ async function makeApiCall(prompt: string, parameters: UserSettings, retries = 0
   }
 }
 
-async function generateSystemPrompt(messages: Message[], userSettings: UserSettings): Promise<string> {
-  const prompt = messages.map((m: Message) => {
+async function processChatRequest(chatState: ChatState, userInput: string, userName: string, isRegeneration: boolean = false, editedMessageId: string | null = null, userSettings: UserSettings): Promise<ChatState> {
+  if (!chatState || !chatState.messages || !Array.isArray(chatState.messages)) {
+    throw new Error('Invalid chat state: messages array is missing or not an array');
+  }
+
+  let updatedMessages = [...chatState.messages];
+
+  logger.info('Initial messages:', JSON.stringify(updatedMessages, null, 2));
+  logger.info(`Initial message count: ${updatedMessages.length}`);
+
+  // Remove any duplicate messages
+  updatedMessages = updatedMessages.filter((message, index, self) =>
+    index === self.findIndex((t) => t.id === message.id)
+  );
+  logger.info(`Message count after removing duplicates: ${updatedMessages.length}`);
+
+  // Handle regeneration, editing, or new message addition
+  if (isRegeneration) {
+    const lastAssistantIndex = updatedMessages.findLastIndex(m => m.role === 'assistant');
+    if (lastAssistantIndex !== -1) {
+      // Remove only the last assistant message
+      updatedMessages = updatedMessages.slice(0, lastAssistantIndex);
+      logger.info('Removed last assistant message for regeneration');
+      logger.info('Messages after removing last assistant:', JSON.stringify(updatedMessages, null, 2));
+    } else {
+      logger.info('No assistant message found to remove for regeneration');
+    }
+  } else if (editedMessageId) {
+    const editedMessageIndex = updatedMessages.findIndex((m: Message) => m.id === editedMessageId);
+    if (editedMessageIndex !== -1) {
+      updatedMessages = updatedMessages.slice(0, editedMessageIndex + 1);
+      updatedMessages[editedMessageIndex] = { ...updatedMessages[editedMessageIndex], content: userInput };
+      logger.info(`Updated edited message at index ${editedMessageIndex}`);
+    }
+  } else if (userInput.trim() !== '') {
+    if (updatedMessages.length === 0 || updatedMessages[updatedMessages.length - 1].role !== 'user') {
+      updatedMessages.push({ id: generateUniqueId(), role: 'user', content: userInput });
+      logger.info('Added new user message');
+    } else {
+      updatedMessages[updatedMessages.length - 1] = { id: generateUniqueId(), role: 'user', content: userInput };
+      logger.info('Replaced last user message');
+    }
+  }
+
+  try {
+    logger.info('Messages before pruning:', JSON.stringify(updatedMessages, null, 2));
+    logger.info(`Message count before pruning: ${updatedMessages.length}`);
+
+    // Step 1: Prune messages
+    const prunedMessages = await pruneMessages(updatedMessages, chatState.systemPrompt);
+    
+    logger.info('Messages after pruning:', JSON.stringify(prunedMessages, null, 2));
+    logger.info(`Message count after pruning: ${prunedMessages.length}`);
+
+    // Step 2: Generate new system prompt based on pruned messages
+    const newSystemPrompt = await generateSystemPrompt({ messages: prunedMessages, systemPrompt: chatState.systemPrompt }, userSettings);
+    
+    logger.info('New system prompt:', newSystemPrompt);
+
+    // Step 3: Generate AI response based on pruned messages and new system prompt
+    const aiResponse = await generateAIResponse({ messages: prunedMessages, systemPrompt: newSystemPrompt }, userName, userSettings);
+    
+    // Step 4: Add AI response to pruned messages
+    prunedMessages.push({ id: generateUniqueId(), role: 'assistant', content: aiResponse });
+
+    logger.info('Final messages:', JSON.stringify(prunedMessages, null, 2));
+    logger.info(`Final message count: ${prunedMessages.length}`);
+
+    // Verify message history integrity
+    if (!verifyMessageHistory(prunedMessages)) {
+      throw new Error('Invalid message history detected after processing');
+    }
+
+    return {
+      messages: prunedMessages,
+      systemPrompt: newSystemPrompt
+    };
+  } catch (error: unknown) {
+    logger.error('Error in processChatRequest:', error);
+    throw new Error(`Failed to process chat request: ${error instanceof Error ? error.message : 'An unexpected error occurred'}`);
+  }
+}
+
+function verifyMessageHistory(messages: Message[]): boolean {
+  for (let i = 1; i < messages.length; i++) {
+    if (messages[i].role === messages[i - 1].role) {
+      logger.error(`Invalid message history: consecutive ${messages[i].role} messages at indices ${i - 1} and ${i}`);
+      return false;
+    }
+  }
+  return true;
+}
+
+async function generateSystemPrompt(chatState: ChatState, userSettings: UserSettings): Promise<string> {
+  const prompt = chatState.messages.map((m: Message) => {
     if (m.role === 'user') {
       return `<|start_header_id|>user<|end_header_id|>\n${m.content}<|eot_id|>`;
     } else if (m.role === 'assistant') {
@@ -284,15 +385,10 @@ System:`;
   });
 }
 
-async function generateAIResponse(messages: Message[], userInput: string, userName: string, userSettings: UserSettings): Promise<string> {
-  const prunedMessages = await pruneMessages(messages);
-  
-  // Generate system prompt
-  const systemPrompt = await generateSystemPrompt(prunedMessages, userSettings);
-  
+async function generateAIResponse(chatState: ChatState, userName: string, userSettings: UserSettings): Promise<string> {
   const prompt = `<|begin_of_text|><|start_header_id|>system<|end_header_id|>
-${systemPrompt}<|eot_id|>
-${prunedMessages.map((m: Message) => {
+${chatState.systemPrompt}<|eot_id|>
+${chatState.messages.map((m: Message) => {
   if (m.role === 'user') {
     return `<|start_header_id|>user<|end_header_id|>\n${userName}: ${m.content}<|eot_id|>`;
   } else if (m.role === 'assistant') {
@@ -300,8 +396,6 @@ ${prunedMessages.map((m: Message) => {
   }
   return '';
 }).join('\n')}
-<|start_header_id|>user<|end_header_id|>
-${userName}: ${userInput}<|eot_id|>
 <|start_header_id|>assistant<|end_header_id|>
 ${AI_NAME}:`;
 
@@ -332,17 +426,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       throw new Error('Invalid request body');
     }
 
-    const { messages, userInput, userName, userSettings } = body;
-    if (!Array.isArray(messages) || typeof userInput !== 'string' || typeof userName !== 'string' || !userSettings) {
-      throw new Error('Invalid messages, user input, user name, or user settings');
+    const { chatState, userInput, userName, isRegeneration = false, editedMessageId = null, userSettings } = body;
+    if (!chatState || typeof userInput !== 'string' || typeof userName !== 'string' || typeof isRegeneration !== 'boolean' || !userSettings) {
+      throw new Error('Invalid chat state, user input, user name, isRegeneration flag, or user settings');
     }
 
-    logger.info("Received messages:", JSON.stringify(messages, null, 2));
+    logger.info("Received chat state:", JSON.stringify(chatState, null, 2));
     logger.info("User input:", userInput);
     logger.info("User name:", userName);
+    logger.info("Is regeneration:", isRegeneration);
+    logger.info("Edited message ID:", editedMessageId);
     logger.info("User settings:", JSON.stringify(userSettings, null, 2));
 
-    const { id, position } = await globalQueue.enqueue(messages, userInput, userName, userSettings);
+    const { id, position } = await globalQueue.enqueue(chatState, userInput, userName, isRegeneration, editedMessageId, userSettings);
 
     logger.info(`Request ${id} enqueued at position ${position}`);
 
@@ -363,7 +459,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const requestId = searchParams.get('requestId');
 
   if (!requestId) {
-    logger.warn("GET request received without requestId");
     return NextResponse.json({ error: "Missing requestId" }, { status: 400 });
   }
 
@@ -371,12 +466,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const status = globalQueue.getStatus(requestId);
     const position = await globalQueue.getPosition(requestId);
 
-    logger.info(`GET request for ${requestId}: Status: ${status}, Position: ${position}`);
-
-    if (status === 'completed' || status === 'error') {
+    if (status === 'completed') {
       const result = globalQueue.getResult(requestId);
       if (result) {
-        logger.info(`Returning completed result for request ${requestId}`);
+        if (typeof result === 'object' && 'error' in result) {
+          return NextResponse.json({ error: result.error }, { status: 500 });
+        }
         return NextResponse.json({ 
           status, 
           queuePosition: 0, 
@@ -384,22 +479,21 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           totalQueueLength: globalQueue.getTotalQueueLength()
         });
       } else {
-        logger.warn(`Result not found for completed request ${requestId}`);
         return NextResponse.json({ error: "Result not found" }, { status: 404 });
       }
+    } else if (status === 'error') {
+      return NextResponse.json({ error: "An error occurred while processing the request" }, { status: 500 });
     } else if (status === 'not_found') {
-      logger.warn(`Request ${requestId} not found in queue`);
       return NextResponse.json({ error: "Request not found" }, { status: 404 });
     }
 
-    logger.info(`Returning status for request ${requestId}: ${status}, position: ${position}`);
     return NextResponse.json({ 
       status, 
       queuePosition: position,
       totalQueueLength: globalQueue.getTotalQueueLength()
     });
   } catch (error: unknown) {
-    logger.error(`Error checking queue position for ${requestId}:`, error);
+    logger.error("Error checking queue position:", error);
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }

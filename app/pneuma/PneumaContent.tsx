@@ -37,9 +37,14 @@ type UserSettings = {
 };
 
 type ApiRequest = {
-  messages: Message[];
+  chatState: {
+    messages: Message[];
+    systemPrompt: string;
+  };
   userInput: string;
   userName: string;
+  isRegeneration: boolean;
+  editedMessageId: string | null;
   userSettings: UserSettings;
 };
 
@@ -132,6 +137,7 @@ const PneumaContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userName, setUserName] = useState(DEFAULT_USER_NAME);
+  const [generatedSystemPrompt, setGeneratedSystemPrompt] = useState('');
   const [userSettings, setUserSettings] = useState<UserSettings>({
     temperature: 0.7,
     top_p: 0.9,
@@ -154,38 +160,10 @@ const PneumaContent: React.FC = () => {
   const chatWindowRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => {
-    const savedSettings = localStorage.getItem('userSettings');
-    if (savedSettings) {
-      const parsedSettings = JSON.parse(savedSettings);
-      setUserName(parsedSettings.userName);
-      setUserSettings(parsedSettings.userSettings);
-    }
-  }, []);
-
-  useEffect(() => {
-    const settingsToSave = { userName, userSettings };
-    localStorage.setItem('userSettings', JSON.stringify(settingsToSave));
-  }, [userName, userSettings]);
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  useEffect(() => {
-    if (chatWindowRef.current) {
-      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
-    }
-  }, [chat.messages]);
-
-  useEffect(() => {
-    textareaRef.current?.focus();
-  }, [isLoading]);
-
   const pollQueuePosition = useCallback(async (requestId: string) => {
     while (true) {
       try {
-        const response = await fetch(`${API_URL}?requestId=${requestId}`);
+        const response = await fetch(`/api/pneuma?requestId=${requestId}`);
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
@@ -202,18 +180,35 @@ const PneumaContent: React.FC = () => {
           setIsProcessing(false);
           
           if (data.result) {
-            setChat(prevChat => ({
-              ...prevChat,
-              messages: [
-                ...prevChat.messages,
-                {
-                  id: uuidv4(),
-                  role: 'assistant',
-                  content: data.result,
-                  status: 'entering'
-                }
-              ]
-            }));
+            setChat(prevChat => {
+              const lastUserMessageIndex = prevChat.messages.findLastIndex(msg => msg.role === 'user');
+              const newAssistantMessages = (data.result.messages as Message[])
+                .filter(msg => msg.role === 'assistant')
+                .map(msg => ({
+                  ...msg,
+                  status: 'entering' as const,
+                  id: msg.id || uuidv4()
+                }));
+
+              if (lastUserMessageIndex === -1) {
+                return {
+                  ...prevChat,
+                  messages: [...prevChat.messages, ...newAssistantMessages]
+                };
+              }
+
+              const updatedMessages = [
+                ...prevChat.messages.slice(0, lastUserMessageIndex + 1),
+                ...newAssistantMessages,
+                ...prevChat.messages.slice(lastUserMessageIndex + 1)
+              ];
+
+              return {
+                ...prevChat,
+                messages: updatedMessages
+              };
+            });
+            setGeneratedSystemPrompt(data.result.systemPrompt || '');
           }
           break;
         }
@@ -225,7 +220,7 @@ const PneumaContent: React.FC = () => {
         break;
       }
     }
-  }, [API_URL]);
+  }, []);
 
   const sendRequest = useCallback(async (isRegeneration: boolean = false, editedMessageId: string | null = null, userMessage: string = '') => {
     try {
@@ -240,10 +235,6 @@ const PneumaContent: React.FC = () => {
 
       if (isRegeneration) {
         console.log('Handling regeneration');
-        const lastUserIndex = updatedMessages.findLastIndex(m => m.role === 'user');
-        if (lastUserIndex !== -1) {
-          updatedMessages = updatedMessages.slice(0, lastUserIndex + 1);
-        }
       } else if (editedMessageId) {
         const editedMessageIndex = updatedMessages.findIndex(m => m.id === editedMessageId);
         if (editedMessageIndex !== -1) {
@@ -264,9 +255,14 @@ const PneumaContent: React.FC = () => {
       console.log('Messages to be sent:', updatedMessages);
 
       const apiRequest: ApiRequest = {
-        messages: updatedMessages,
+        chatState: {
+          messages: updatedMessages,
+          systemPrompt: generatedSystemPrompt
+        },
         userInput: messageToSend,
         userName: userName,
+        isRegeneration,
+        editedMessageId,
         userSettings,
       };
 
@@ -309,7 +305,7 @@ const PneumaContent: React.FC = () => {
       setQueuePosition(null);
       setIsProcessing(false);
     }
-  }, [chat.messages, inputValue, editedContent, userName, pollQueuePosition, userSettings, API_URL, error]);
+  }, [chat.messages, inputValue, editedContent, generatedSystemPrompt, userName, pollQueuePosition, userSettings, error]);
 
   const debouncedSendRequest = useCallback(
     debounce((isRegeneration: boolean, editedMessageId: string | null, message: string) => 
@@ -317,6 +313,42 @@ const PneumaContent: React.FC = () => {
     300),
     [sendRequest]
   );
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  useEffect(() => {
+    const savedChat = localStorage.getItem('currentChat');
+    if (savedChat) {
+      setChat(JSON.parse(savedChat));
+    }
+    const savedSettings = localStorage.getItem('userSettings');
+    if (savedSettings) {
+      const parsedSettings = JSON.parse(savedSettings);
+      setUserName(parsedSettings.userName);
+      setUserSettings(parsedSettings.userSettings);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('currentChat', JSON.stringify(chat));
+  }, [chat]);
+
+  useEffect(() => {
+    const settingsToSave = { userName, userSettings };
+    localStorage.setItem('userSettings', JSON.stringify(settingsToSave));
+  }, [userName, userSettings]);
+
+  useEffect(() => {
+    if (chatWindowRef.current) {
+      chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
+    }
+  }, [chat.messages]);
+
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, [isLoading]);
 
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(e.target.value);
@@ -412,7 +444,6 @@ const PneumaContent: React.FC = () => {
     });
   
     // Remove exiting messages and reset sliding status after animation
-    // Remove exiting messages and reset sliding status after animation
     setTimeout(() => {
       setChat(prevChat => {
         const updatedMessages = prevChat.messages
@@ -470,8 +501,10 @@ const PneumaContent: React.FC = () => {
         userId: 'anonymous',
         messages: []
       });
+      localStorage.removeItem('currentChat');
       setQueuePosition(null);
       setIsProcessing(false);
+      setGeneratedSystemPrompt('');
       setRegenerationAttempts(0);
     }
   }, [isLoading]);
@@ -683,6 +716,16 @@ const PneumaContent: React.FC = () => {
               placeholder="Enter your name"
               className={styles.settingInput}
             />
+          </div>
+  
+          <div className={styles.settingGroup}>
+            <label htmlFor="generatedSystemPrompt" className={styles.settingLabel}>Generated System Prompt:</label>
+            <textarea
+              id="generatedSystemPrompt"
+              value={generatedSystemPrompt}
+              readOnly
+              className={styles.settingTextarea}
+            ></textarea>
           </div>
   
           <h3 className={styles.settingSectionTitle}>Model Parameters</h3>
