@@ -145,7 +145,6 @@ const PneumaContent: React.FC = () => {
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
-  const [generatedSystemPrompt, setGeneratedSystemPrompt] = useState('');
   const [isPanelVisible, setIsPanelVisible] = useState(false);
   const [regenerationAttempts, setRegenerationAttempts] = useState(0);
   const MAX_REGENERATION_ATTEMPTS = 3;
@@ -187,24 +186,20 @@ const PneumaContent: React.FC = () => {
     while (true) {
       try {
         const response = await fetch(`${API_URL}?requestId=${requestId}`);
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         console.log("Poll queue position response:", data);
-  
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError(data.error || "Request not found. It may have been cleaned up.");
-            break;
-          }
-          throw new Error(data.error || `HTTP error! status: ${response.status}`);
-        }
-  
+
         setQueuePosition(data.queuePosition);
         setIsProcessing(data.status === 'processing');
-  
+
         if (data.status === 'completed') {
           setIsLoading(false);
           setQueuePosition(null);
-          setIsProcessing(false);      
+          setIsProcessing(false);
           
           if (data.result) {
             setChat(prevChat => ({
@@ -214,19 +209,15 @@ const PneumaContent: React.FC = () => {
                 {
                   id: uuidv4(),
                   role: 'assistant',
-                  content: data.result.response,
+                  content: data.result,
                   status: 'entering'
                 }
               ]
             }));
-          // Update the system prompt if needed
-      if (data.result.systemPrompt) {
-        setGeneratedSystemPrompt(data.result.systemPrompt);
-      }
-    }
-    break;
-  }
-  
+          }
+          break;
+        }
+
         await new Promise(resolve => setTimeout(resolve, 2000));
       } catch (error) {
         console.error('Error polling queue position:', error);
@@ -234,7 +225,7 @@ const PneumaContent: React.FC = () => {
         break;
       }
     }
-  }, [API_URL, setChat, setError, setIsLoading, setIsProcessing, setQueuePosition, setGeneratedSystemPrompt]);
+  }, [API_URL]);
 
   const sendRequest = useCallback(async (isRegeneration: boolean = false, editedMessageId: string | null = null, userMessage: string = '') => {
     try {
@@ -321,12 +312,9 @@ const PneumaContent: React.FC = () => {
   }, [chat.messages, inputValue, editedContent, userName, pollQueuePosition, userSettings, API_URL, error]);
 
   const debouncedSendRequest = useCallback(
-    (isRegeneration: boolean, editedMessageId: string | null, message: string) => {
-      const debouncedFunction = debounce((isRegen: boolean, editedId: string | null, msg: string) => 
-        sendRequest(isRegen, editedId, msg),
-      300);
-      debouncedFunction(isRegeneration, editedMessageId, message);
-    },
+    debounce((isRegeneration: boolean, editedMessageId: string | null, message: string) => 
+      sendRequest(isRegeneration, editedMessageId, message),
+    300),
     [sendRequest]
   );
 
@@ -669,72 +657,62 @@ const PneumaContent: React.FC = () => {
       </div>
   
       {/* Settings Panel */}
-  <div 
-    className={`${styles.settingsPanel} ${isPanelVisible ? styles.visible : ''}`}
-    aria-hidden={!isPanelVisible}
-  >
-    <div className={styles.settingsPanelContent}>
-      <div className={styles.settingsPanelHeader}>
-        <h2>Interaction State</h2>
-        <button 
-          className={styles.closeSettings} 
-          onClick={toggleSettings} 
-          aria-label="Close settings"
-        >
-          <FiX />
-        </button>
-      </div>
-        
-      <div className={styles.settingGroup}>
-        <label htmlFor="userName" className={styles.settingLabel}>Your Name:</label>
-        <input
-          id="userName"
-          type="text"
-          value={userName}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setUserName(e.target.value)}
-          placeholder="Enter your name"
-          className={styles.settingInput}
-        />
-      </div>
-
-      <div className={styles.settingGroup}>
-        <label htmlFor="generatedSystemPrompt" className={styles.settingLabel}>Generated System Prompt:</label>
-        <textarea
-          id="generatedSystemPrompt"
-          value={generatedSystemPrompt}
-          readOnly
-          className={styles.settingTextarea}
-        ></textarea>
-      </div>
-
-      <h3 className={styles.settingSectionTitle}>Model Parameters</h3>
-      {Object.entries(userSettings).map(([key, value]) => {
-        const { min, max, step } = getSliderProps(key as keyof UserSettings);
-        return (
-          <div key={key} className={styles.sliderContainer}>
-            <label htmlFor={`setting-${key}`} className={styles.settingLabel}>
-              {key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ')}:
-            </label>
-            <div className={styles.sliderGroup}>
-              <input
-                id={`setting-${key}`}
-                type="range"
-                min={min}
-                max={max}
-                step={step}
-                value={value}
-                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                  updateUserSetting(key as keyof UserSettings, parseFloat(e.target.value))
-                }
-                className={styles.slider}
-              />
-              <span className={styles.sliderValue}>{formatSettingValue(key, value)}</span>
-            </div>
+      <div 
+        className={`${styles.settingsPanel} ${isPanelVisible ? styles.visible : ''}`}
+        aria-hidden={!isPanelVisible}
+      >
+        <div className={styles.settingsPanelContent}>
+          <div className={styles.settingsPanelHeader}>
+            <h2>Interaction State</h2>
+            <button 
+              className={styles.closeSettings} 
+              onClick={toggleSettings} 
+              aria-label="Close settings"
+            >
+              <FiX />
+            </button>
           </div>
-        );
-      })}
-    </div>
-  </div>
+            
+          <div className={styles.settingGroup}>
+            <label htmlFor="userName" className={styles.settingLabel}>Your Name:</label>
+            <input
+              id="userName"
+              type="text"
+              value={userName}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setUserName(e.target.value)}
+              placeholder="Enter your name"
+              className={styles.settingInput}
+            />
+          </div>
+  
+          <h3 className={styles.settingSectionTitle}>Model Parameters</h3>
+          {Object.entries(userSettings).map(([key, value]) => {
+            const { min, max, step } = getSliderProps(key as keyof UserSettings);
+            return (
+              <div key={key} className={styles.sliderContainer}>
+                <label htmlFor={`setting-${key}`} className={styles.settingLabel}>
+                  {key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ')}:
+                </label>
+                <div className={styles.sliderGroup}>
+                  <input
+                    id={`setting-${key}`}
+                    type="range"
+                    min={min}
+                    max={max}
+                    step={step}
+                    value={value}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      updateUserSetting(key as keyof UserSettings, parseFloat(e.target.value))
+                    }
+                    className={styles.slider}
+                  />
+                  <span className={styles.sliderValue}>{formatSettingValue(key, value)}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 };
