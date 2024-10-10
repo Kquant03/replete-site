@@ -56,6 +56,7 @@ type QueueItem = {
   userSettings: UserSettings;
   status: 'queued' | 'processing' | 'completed' | 'error';
   result?: string;
+  systemPrompt?: string;
   timestamp: number;
 };
 
@@ -100,8 +101,9 @@ class Queue {
       const item = this.processing.get(id);
       if (!item) throw new Error(`Item ${id} not found in processing queue`);
 
-      const response = await generateAIResponse(item.messages, item.userInput, item.userName, item.userSettings);
+      const { response, systemPrompt } = await generateAIResponse(item.messages, item.userInput, item.userName, item.userSettings);
       item.result = response;
+      item.systemPrompt = systemPrompt;
       item.status = 'completed';
       await this.completeRequest(id);
     } catch (error: unknown) {
@@ -154,9 +156,12 @@ class Queue {
     return 'not_found';
   }
 
-  getResult(id: string): string | null {
+  getResult(id: string): { response: string; systemPrompt: string } | null {
     const completedItem = this.completedItems.get(id);
-    return completedItem?.result || null;
+    if (completedItem && completedItem.result && completedItem.systemPrompt) {
+      return { response: completedItem.result, systemPrompt: completedItem.systemPrompt };
+    }
+    return null;
   }
 
   cleanup() {
@@ -284,7 +289,7 @@ System:`;
   });
 }
 
-async function generateAIResponse(messages: Message[], userInput: string, userName: string, userSettings: UserSettings): Promise<string> {
+async function generateAIResponse(messages: Message[], userInput: string, userName: string, userSettings: UserSettings): Promise<{ response: string; systemPrompt: string }> {
   const prunedMessages = await pruneMessages(messages);
   
   // Generate system prompt
@@ -319,7 +324,7 @@ ${AI_NAME}:`;
 
   logger.info('Extracted new response:', cleanResponse);
 
-  return cleanResponse;
+  return { response: cleanResponse, systemPrompt };
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -385,13 +390,22 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         });
       } else {
         logger.warn(`Result not found for completed request ${requestId}`);
-        return NextResponse.json({ error: "Result not found" }, { status: 404 });
+        return NextResponse.json({ 
+          status: 'not_found',
+          error: "Result not found, it may have been cleaned up",
+          totalQueueLength: globalQueue.getTotalQueueLength()
+        }, { status: 404 });
       }
     } else if (status === 'not_found') {
       logger.warn(`Request ${requestId} not found in queue`);
-      return NextResponse.json({ error: "Request not found" }, { status: 404 });
+      return NextResponse.json({ 
+        status: 'not_found',
+        error: "Request not found, it may have been cleaned up or never existed",
+        totalQueueLength: globalQueue.getTotalQueueLength()
+      }, { status: 404 });
     }
 
+    // If the status is 'queued' or 'processing'
     logger.info(`Returning status for request ${requestId}: ${status}, position: ${position}`);
     return NextResponse.json({ 
       status, 
