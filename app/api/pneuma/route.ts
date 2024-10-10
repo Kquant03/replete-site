@@ -6,8 +6,8 @@ import { initializeTokenizer, countTokens, estimateTokens } from './fastTokenize
 const TABBY_API_URL = process.env.TABBY_API_URL || 'http://localhost:5000';
 const TABBY_API_KEY = process.env.TABBY_API_KEY;
 const AI_NAME = process.env.AI_NAME || "Pneuma";
-const MAX_RETRIES = 5;
-const INITIAL_RETRY_DELAY = 1000; // 1 second
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 60000; // 1 minute
 
 type Message = {
   id: string;
@@ -211,11 +211,7 @@ async function pruneMessages(messages: Message[], systemPrompt: string): Promise
 }
 
 async function makeApiCall(prompt: string, parameters: UserSettings, retries = 0): Promise<string> {
-  const retryDelay = INITIAL_RETRY_DELAY * Math.pow(2, retries);
-  
   try {
-    console.log(`Attempting API call to ${TABBY_API_URL} (attempt ${retries + 1})`);
-    
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 seconds timeout
 
@@ -245,25 +241,11 @@ async function makeApiCall(prompt: string, parameters: UserSettings, retries = 0
     return data.choices[0].text.trim();
   } catch (error: unknown) {
     console.error(`API call error (attempt ${retries + 1}):`, error);
-    
-    if (error instanceof Error) {
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-      
-      if ('cause' in error && error.cause !== undefined) {
-        console.error('Error cause:', error.cause);
-      }
-    } else {
-      console.error('Non-Error object thrown:', error);
-    }
-    
     if (retries < MAX_RETRIES) {
-      console.log(`Retrying API call in ${retryDelay}ms...`);
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      console.log(`Retrying API call (attempt ${retries + 2})...`);
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
       return makeApiCall(prompt, parameters, retries + 1);
     }
-    
     throw new Error(`API call failed after ${MAX_RETRIES} retries: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -497,10 +479,5 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-// Initialize the tokenizer
+// At the end of the file, update the initializeTokenizer call
 initializeTokenizer().catch(console.error);
-
-// Log environment variables (be careful not to log sensitive information)
-console.log('TABBY_API_URL:', TABBY_API_URL);
-console.log('AI_NAME:', AI_NAME);
-console.log('Environment check complete');
