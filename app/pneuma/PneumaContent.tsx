@@ -185,10 +185,7 @@ const PneumaContent: React.FC = () => {
   }, [isLoading]);
 
   const pollQueuePosition = useCallback(async (requestId: string) => {
-    const MAX_POLL_ATTEMPTS = 60; // 2 minutes at 2-second intervals
-    let attempts = 0;
-  
-    while (attempts < MAX_POLL_ATTEMPTS) {
+    while (true) {
       try {
         const response = await fetch(`${API_URL}?requestId=${requestId}`);
         const data = await response.json();
@@ -208,7 +205,7 @@ const PneumaContent: React.FC = () => {
         if (data.status === 'completed') {
           setIsLoading(false);
           setQueuePosition(null);
-          setIsProcessing(false);
+          setIsProcessing(false);      
           
           if (data.result) {
             setChat(prevChat => ({
@@ -223,28 +220,20 @@ const PneumaContent: React.FC = () => {
                 }
               ]
             }));
-            // Update the system prompt if needed
-            if (data.result.systemPrompt) {
-              setGeneratedSystemPrompt(data.result.systemPrompt);
-            }
-          }
-          break;
-        } else if (data.status === 'error') {
-          setError(data.error || "An error occurred while processing your request.");
-          break;
-        }
+          // Update the system prompt if needed
+      if (data.result.systemPrompt) {
+        setGeneratedSystemPrompt(data.result.systemPrompt);
+      }
+    }
+    break;
+  }
   
-        attempts++;
         await new Promise(resolve => setTimeout(resolve, 2000));
       } catch (error) {
         console.error('Error polling queue position:', error);
         setError(error instanceof Error ? error.message : 'Error checking queue position. Please try again.');
         break;
       }
-    }
-  
-    if (attempts >= MAX_POLL_ATTEMPTS) {
-      setError("Request timed out. Please try again.");
     }
   }, [API_URL, setChat, setError, setIsLoading, setIsProcessing, setQueuePosition, setGeneratedSystemPrompt]);
 
