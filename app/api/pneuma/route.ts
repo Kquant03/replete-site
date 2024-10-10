@@ -1,37 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Mutex } from 'async-mutex';
 import axios from 'axios';
-import https from 'https';
 import { generateUniqueId } from './generateUniqueId';
 import { initializeTokenizer, countTokens, estimateTokens } from './fastTokenizer';
-import { createLogger, format, transports } from 'winston';
 
 const TABBY_API_URL = process.env.TABBY_API_URL || 'http://localhost:5000';
 const TABBY_API_KEY = process.env.TABBY_API_KEY;
 const AI_NAME = process.env.AI_NAME || "Pneuma";
 const MAX_RETRIES = 5;
 const INITIAL_RETRY_DELAY = 1000; // 1 second
-
-const logger = createLogger({
-  level: 'info',
-  format: format.combine(
-    format.timestamp(),
-    format.json()
-  ),
-  transports: [
-    new transports.Console(),
-    new transports.File({ filename: 'error.log', level: 'error' }),
-    new transports.File({ filename: 'combined.log' })
-  ]
-});
-
-const api = axios.create({
-  timeout: 120000, // 2 minutes
-  httpsAgent: new https.Agent({
-    keepAlive: true,
-    keepAliveMsecs: 30000, // 30 seconds
-  }),
-});
 
 type Message = {
   id: string;
@@ -82,7 +59,7 @@ class Queue {
       const item: QueueItem = { id, chatState, userInput, userName, isRegeneration, editedMessageId, userSettings, status: 'queued', timestamp: Date.now() };
       this.queue.push(item);
       const position = this.queue.length;
-      logger.info(`Enqueued request ${id} at position ${position}. Total requests: ${this.totalRequestsReceived}`);
+      console.log(`[${new Date().toISOString()}] Enqueued request ${id} at position ${position}. Total requests: ${this.totalRequestsReceived}`);
       setImmediate(() => this.processQueue());
       return { id, position };
     });
@@ -90,19 +67,20 @@ class Queue {
 
   private async processQueue() {
     await this.mutex.runExclusive(async () => {
-      const availableSlots = this.MAX_CONCURRENT_REQUESTS - this.processing.size;
-      const itemsToProcess = this.queue.slice(0, availableSlots);
-      
-      for (const item of itemsToProcess) {
-        this.queue = this.queue.filter(queueItem => queueItem.id !== item.id);
-        this.processing.set(item.id, { ...item, status: 'processing' });
-        this.processRequest(item.id).catch(error => logger.error('Error processing request', { error, requestId: item.id }));
+      while (this.processing.size < this.MAX_CONCURRENT_REQUESTS && this.queue.length > 0) {
+        const next = this.queue.shift();
+        if (next && !this.processing.has(next.id)) {
+          this.processing.set(next.id, { ...next, status: 'processing' });
+          setImmediate(() => this.processRequest(next.id));
+        } else {
+          break;
+        }
       }
     });
   }
 
   private async processRequest(id: string) {
-    logger.info(`Processing request ${id}`);
+    console.log(`[${new Date().toISOString()}] Processing request ${id}`);
     try {
       const item = this.processing.get(id);
       if (!item) throw new Error(`Item ${id} not found in processing queue`);
@@ -112,7 +90,7 @@ class Queue {
       item.status = 'completed';
       await this.completeRequest(id);
     } catch (error: unknown) {
-      logger.error(`Error processing request ${id}:`, error);
+      console.error(`[${new Date().toISOString()}] Error processing request ${id}:`, error);
       await this.mutex.runExclusive(() => {
         const item = this.processing.get(id);
         if (item) {
@@ -126,8 +104,8 @@ class Queue {
       await this.mutex.runExclusive(() => {
         this.processing.delete(id);
       });
-      logger.info(`Finished processing ${id}. Current processing: ${this.processing.size}, Queue length: ${this.queue.length}`);
-      this.processQueue().catch(error => logger.error('Error processing queue', { error }));
+      console.log(`[${new Date().toISOString()}] Finished processing ${id}. Current processing: ${this.processing.size}, Queue length: ${this.queue.length}`);
+      setImmediate(() => this.processQueue());
     }
   }
 
@@ -195,36 +173,40 @@ async function pruneMessages(messages: Message[], systemPrompt: string): Promise
   const prunedMessages = [...messages];
   let totalTokens = await estimateTokens(prunedMessages, systemPrompt);
 
-  logger.info(`Initial message count: ${prunedMessages.length}, Initial total tokens: ${totalTokens}`);
+  console.log(`Initial message count: ${prunedMessages.length}`);
+  console.log(`Initial total tokens: ${totalTokens}`);
 
   const TOKEN_LIMIT = 6200;
   const MESSAGES_TO_REMOVE = 6;
 
   while (totalTokens > TOKEN_LIMIT && prunedMessages.length > MESSAGES_TO_REMOVE) {
-    logger.info(`Token count (${totalTokens}) exceeds limit (${TOKEN_LIMIT}). Attempting to remove earliest ${MESSAGES_TO_REMOVE} messages.`);
+    console.log(`Token count (${totalTokens}) exceeds limit (${TOKEN_LIMIT}). Attempting to remove earliest ${MESSAGES_TO_REMOVE} messages.`);
     
     const removedMessages = prunedMessages.splice(0, MESSAGES_TO_REMOVE);
     const removedTokens = await estimateTokens(removedMessages, '');
     
-    logger.info(`Removed messages: ${JSON.stringify(removedMessages)}, Tokens in removed messages: ${removedTokens}`);
+    console.log(`Removed messages:`, removedMessages);
+    console.log(`Tokens in removed messages: ${removedTokens}`);
 
     totalTokens = await estimateTokens(prunedMessages, systemPrompt);
 
-    logger.info(`Updated message count: ${prunedMessages.length}, Updated total tokens: ${totalTokens}`);
+    console.log(`Updated message count: ${prunedMessages.length}`);
+    console.log(`Updated total tokens: ${totalTokens}`);
 
     if (removedMessages.length === 0) {
-      logger.error("Failed to remove messages. Breaking loop to prevent infinite iteration.");
+      console.error("Failed to remove messages. Breaking loop to prevent infinite iteration.");
       break;
     }
   }
 
   if (totalTokens <= TOKEN_LIMIT) {
-    logger.info("Successfully pruned messages to fit within token limit.");
+    console.log("Successfully pruned messages to fit within token limit.");
   } else {
-    logger.warn("Unable to prune messages sufficiently. Total tokens still exceed limit.");
+    console.warn("Unable to prune messages sufficiently. Total tokens still exceed limit.");
   }
 
-  logger.info(`Final message count: ${prunedMessages.length}, Final total tokens: ${totalTokens}`);
+  console.log(`Final message count: ${prunedMessages.length}`);
+  console.log(`Final total tokens: ${totalTokens}`);
 
   return prunedMessages;
 }
@@ -233,36 +215,62 @@ async function makeApiCall(prompt: string, parameters: UserSettings, retries = 0
   const retryDelay = INITIAL_RETRY_DELAY * Math.pow(2, retries);
   
   try {
-    logger.info(`Attempting API call to ${TABBY_API_URL} (attempt ${retries + 1})`);
+    console.log(`Attempting API call to ${TABBY_API_URL} (attempt ${retries + 1})`);
+    
+    console.log('Sending request with the following parameters:', {
+      url: `${TABBY_API_URL}/v1/completions`,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer [REDACTED]'
+      },
+      data: {
+        model: "turbcat",
+        prompt: prompt.substring(0, 100) + '...', // Log only the first 100 characters of the prompt
+        ...parameters,
+        stop: ["<|eot_id|>", "<|end_header_id|>"],
+        stream: false,
+      },
+    });
 
-    const response = await api.post(`${TABBY_API_URL}/v1/completions`, {
-      model: "turbcat",
-      prompt: prompt,
-      ...parameters,
-      stop: ["<|eot_id|>", "<|end_header_id|>"],
-      stream: false,
-    }, {
+    const response = await axios({
+      method: 'post',
+      url: `${TABBY_API_URL}/v1/completions`,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${TABBY_API_KEY}`
       },
+      data: {
+        model: "turbcat",
+        prompt: prompt,
+        ...parameters,
+        stop: ["<|eot_id|>", "<|end_header_id|>"],
+        stream: false,
+      },
+      timeout: 60000 // 60 seconds timeout
     });
 
     return response.data.choices[0].text.trim();
   } catch (error) {
-    logger.error(`API call error (attempt ${retries + 1}):`, error);
+    console.error(`API call error (attempt ${retries + 1}):`, error);
     
     if (axios.isAxiosError(error)) {
-      logger.error('Axios error:', error.message);
-      logger.error('Axios error config:', error.config);
+      console.error('Axios error:', error.message);
+      console.error('Axios error config:', error.config);
       if (error.response) {
-        logger.error('Axios error response:', error.response.data);
-        logger.error('Axios error status:', error.response.status);
+        console.error('Axios error response:', error.response.data);
+        console.error('Axios error status:', error.response.status);
       }
+    } else if (error instanceof Error) {
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    } else {
+      console.error('Non-Error object thrown:', error);
     }
     
     if (retries < MAX_RETRIES) {
-      logger.info(`Retrying API call in ${retryDelay}ms...`);
+      console.log(`Retrying API call in ${retryDelay}ms...`);
       await new Promise(resolve => setTimeout(resolve, retryDelay));
       return makeApiCall(prompt, parameters, retries + 1);
     }
@@ -278,14 +286,14 @@ async function processChatRequest(chatState: ChatState, userInput: string, userN
 
   let updatedMessages = [...chatState.messages];
 
-  logger.info('Initial messages:', JSON.stringify(updatedMessages, null, 2));
-  logger.info(`Initial message count: ${updatedMessages.length}`);
+  console.log('Initial messages:', JSON.stringify(updatedMessages, null, 2));
+  console.log(`Initial message count: ${updatedMessages.length}`);
 
   // Remove any duplicate messages
   updatedMessages = updatedMessages.filter((message, index, self) =>
     index === self.findIndex((t) => t.id === message.id)
   );
-  logger.info(`Message count after removing duplicates: ${updatedMessages.length}`);
+  console.log(`Message count after removing duplicates: ${updatedMessages.length}`);
 
   // Handle regeneration, editing, or new message addition
   if (isRegeneration) {
@@ -293,42 +301,43 @@ async function processChatRequest(chatState: ChatState, userInput: string, userN
     if (lastAssistantIndex !== -1) {
       // Remove only the last assistant message
       updatedMessages = updatedMessages.slice(0, lastAssistantIndex);
-      logger.info('Removed last assistant message for regeneration');
-      logger.info('Messages after removing last assistant:', JSON.stringify(updatedMessages, null, 2));
+      console.log('Removed last assistant message for regeneration');
+      console.log('Messages after removing last assistant:', JSON.stringify(updatedMessages, null, 2));
     } else {
-      logger.info('No assistant message found to remove for regeneration');
+      console.log('No assistant message found to remove for regeneration');
     }
+    // We don't need to add a new user message here, as we're regenerating based on the existing last user message
   } else if (editedMessageId) {
     const editedMessageIndex = updatedMessages.findIndex((m: Message) => m.id === editedMessageId);
     if (editedMessageIndex !== -1) {
       updatedMessages = updatedMessages.slice(0, editedMessageIndex + 1);
       updatedMessages[editedMessageIndex] = { ...updatedMessages[editedMessageIndex], content: userInput };
-      logger.info(`Updated edited message at index ${editedMessageIndex}`);
+      console.log(`Updated edited message at index ${editedMessageIndex}`);
     }
   } else if (userInput.trim() !== '') {
     if (updatedMessages.length === 0 || updatedMessages[updatedMessages.length - 1].role !== 'user') {
       updatedMessages.push({ id: generateUniqueId(), role: 'user', content: userInput });
-      logger.info('Added new user message');
+      console.log('Added new user message');
     } else {
       updatedMessages[updatedMessages.length - 1] = { id: generateUniqueId(), role: 'user', content: userInput };
-      logger.info('Replaced last user message');
+      console.log('Replaced last user message');
     }
   }
 
   try {
-    logger.info('Messages before pruning:', JSON.stringify(updatedMessages, null, 2));
-    logger.info(`Message count before pruning: ${updatedMessages.length}`);
+    console.log('Messages before pruning:', JSON.stringify(updatedMessages, null, 2));
+    console.log(`Message count before pruning: ${updatedMessages.length}`);
 
     // Step 1: Prune messages
     const prunedMessages = await pruneMessages(updatedMessages, chatState.systemPrompt);
     
-    logger.info('Messages after pruning:', JSON.stringify(prunedMessages, null, 2));
-    logger.info(`Message count after pruning: ${prunedMessages.length}`);
+    console.log('Messages after pruning:', JSON.stringify(prunedMessages, null, 2));
+    console.log(`Message count after pruning: ${prunedMessages.length}`);
 
     // Step 2: Generate new system prompt based on pruned messages
     const newSystemPrompt = await generateSystemPrompt({ messages: prunedMessages, systemPrompt: chatState.systemPrompt }, userSettings);
     
-    logger.info('New system prompt:', newSystemPrompt);
+    console.log('New system prompt:', newSystemPrompt);
 
     // Step 3: Generate AI response based on pruned messages and new system prompt
     const aiResponse = await generateAIResponse({ messages: prunedMessages, systemPrompt: newSystemPrompt }, userName, userSettings);
@@ -336,8 +345,8 @@ async function processChatRequest(chatState: ChatState, userInput: string, userN
     // Step 4: Add AI response to pruned messages
     prunedMessages.push({ id: generateUniqueId(), role: 'assistant', content: aiResponse });
 
-    logger.info('Final messages:', JSON.stringify(prunedMessages, null, 2));
-    logger.info(`Final message count: ${prunedMessages.length}`);
+    console.log('Final messages:', JSON.stringify(prunedMessages, null, 2));
+    console.log(`Final message count: ${prunedMessages.length}`);
 
     // Verify message history integrity
     if (!verifyMessageHistory(prunedMessages)) {
@@ -349,7 +358,7 @@ async function processChatRequest(chatState: ChatState, userInput: string, userN
       systemPrompt: newSystemPrompt
     };
   } catch (error: unknown) {
-    logger.error('Error in processChatRequest:', error);
+    console.error('Error in processChatRequest:', error);
     throw new Error(`Failed to process chat request: ${error instanceof Error ? error.message : 'An unexpected error occurred'}`);
   }
 }
@@ -357,7 +366,7 @@ async function processChatRequest(chatState: ChatState, userInput: string, userN
 function verifyMessageHistory(messages: Message[]): boolean {
   for (let i = 1; i < messages.length; i++) {
     if (messages[i].role === messages[i - 1].role) {
-      logger.error(`Invalid message history: consecutive ${messages[i].role} messages at indices ${i - 1} and ${i}`);
+      console.error(`Invalid message history: consecutive ${messages[i].role} messages at indices ${i - 1} and ${i}`);
       return false;
     }
   }
@@ -399,9 +408,9 @@ ${chatState.messages.map((m: Message) => {
 <|start_header_id|>assistant<|end_header_id|>
 ${AI_NAME}:`;
 
-  logger.info('Generating AI response with prompt:');
-  logger.info(prompt);
-  logger.info(`Estimated token count: ${await countTokens(prompt)}`);
+  console.log('Generating AI response with prompt:');
+  console.log(prompt);
+  console.log(`Estimated token count: ${await countTokens(prompt)}`);
 
   const response = await makeApiCall(prompt, userSettings);
   
@@ -411,16 +420,16 @@ ${AI_NAME}:`;
   // Remove any <|eot_id|> tags from the response
   const cleanResponse = newResponse.replace(/<\|eot_id\|>/g, '').trim();
 
-  logger.info('Extracted new response:', cleanResponse);
+  console.log('Extracted new response:', cleanResponse);
 
   return cleanResponse;
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    logger.info('Received POST request to /api/pneuma');
+    console.log('Received POST request to /api/pneuma');
     const body = await request.json();
-    logger.info('Request body:', JSON.stringify(body, null, 2));
+    console.log('Request body:', JSON.stringify(body, null, 2));
 
     if (!body || typeof body !== 'object') {
       throw new Error('Invalid request body');
@@ -431,16 +440,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       throw new Error('Invalid chat state, user input, user name, isRegeneration flag, or user settings');
     }
 
-    logger.info("Received chat state:", JSON.stringify(chatState, null, 2));
-    logger.info("User input:", userInput);
-    logger.info("User name:", userName);
-    logger.info("Is regeneration:", isRegeneration);
-    logger.info("Edited message ID:", editedMessageId);
-    logger.info("User settings:", JSON.stringify(userSettings, null, 2));
+    console.log("Received chat state:", JSON.stringify(chatState, null, 2));
+    console.log("User input:", userInput);
+    console.log("User name:", userName);
+    console.log("Is regeneration:", isRegeneration);
+    console.log("Edited message ID:", editedMessageId);
+    console.log("User settings:", JSON.stringify(userSettings, null, 2));
 
     const { id, position } = await globalQueue.enqueue(chatState, userInput, userName, isRegeneration, editedMessageId, userSettings);
 
-    logger.info(`Request ${id} enqueued at position ${position}`);
+    console.log(`Request ${id} enqueued at position ${position}`);
 
     return NextResponse.json({ 
       requestId: id, 
@@ -448,7 +457,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       totalQueueLength: globalQueue.getTotalQueueLength()
     });
   } catch (error: unknown) {
-    logger.error("Error processing chat request:", error);
+    console.error("Error processing chat request:", error);
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
@@ -493,16 +502,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       totalQueueLength: globalQueue.getTotalQueueLength()
     });
   } catch (error: unknown) {
-    logger.error("Error checking queue position:", error);
+    console.error("Error checking queue position:", error);
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
 
 // Initialize the tokenizer
-initializeTokenizer().catch(error => logger.error("Error initializing tokenizer:", error));
+initializeTokenizer().catch(console.error);
 
 // Log environment variables (be careful not to log sensitive information)
-logger.info('TABBY_API_URL:', TABBY_API_URL);
-logger.info('AI_NAME:', AI_NAME);
-logger.info('Environment check complete');
+console.log('TABBY_API_URL:', TABBY_API_URL);
+console.log('AI_NAME:', AI_NAME);
+console.log('Environment check complete');
