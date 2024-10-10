@@ -41,7 +41,6 @@ type ApiRequest = {
   userInput: string;
   userName: string;
   userSettings: UserSettings;
-  isRegeneration: boolean;  // Add this line
 };
 
 const MessageItem: React.FC<{
@@ -237,85 +236,89 @@ const PneumaContent: React.FC = () => {
     }
   }, [API_URL, setChat, setError, setIsLoading, setIsProcessing, setQueuePosition, setGeneratedSystemPrompt]);
 
-  const sendRequest = useCallback(async (isRegeneration: boolean = false, editedMessageId: string | null = null, userMessage: string = '', conversationHistory: Message[] = []) => {
+  const sendRequest = useCallback(async (isRegeneration: boolean = false, editedMessageId: string | null = null, userMessage: string = '') => {
     try {
       setIsLoading(true);
       setError(null);
-  
+
       let messageToSend = userMessage || inputValue;
-      let updatedMessages = isRegeneration ? conversationHistory : [...chat.messages];
-  
+      let updatedMessages = [...chat.messages];
+
       console.log('sendRequest called with:', { isRegeneration, editedMessageId, userMessage });
       console.log('Initial messages:', updatedMessages);
-  
-      if (!isRegeneration) {
-        if (editedMessageId) {
-          const editedMessageIndex = updatedMessages.findIndex(m => m.id === editedMessageId);
-          if (editedMessageIndex !== -1) {
-            updatedMessages = updatedMessages.slice(0, editedMessageIndex + 1);
-            updatedMessages[editedMessageIndex] = { ...updatedMessages[editedMessageIndex], content: editedContent, status: 'active' };
-          }
-          messageToSend = editedContent;
-        } else {
-          const newUserMessage: Message = {
-            id: uuidv4(),
-            role: 'user',
-            content: messageToSend,
-            status: 'entering'
-          };
-          updatedMessages = [...updatedMessages, newUserMessage];
+
+      if (isRegeneration) {
+        console.log('Handling regeneration');
+        const lastUserIndex = updatedMessages.findLastIndex(m => m.role === 'user');
+        if (lastUserIndex !== -1) {
+          updatedMessages = updatedMessages.slice(0, lastUserIndex + 1);
         }
+      } else if (editedMessageId) {
+        const editedMessageIndex = updatedMessages.findIndex(m => m.id === editedMessageId);
+        if (editedMessageIndex !== -1) {
+          updatedMessages = updatedMessages.slice(0, editedMessageIndex + 1);
+          updatedMessages[editedMessageIndex] = { ...updatedMessages[editedMessageIndex], content: editedContent, status: 'active' };
+        }
+        messageToSend = editedContent;
+      } else {
+        const newUserMessage: Message = {
+          id: uuidv4(),
+          role: 'user',
+          content: messageToSend,
+          status: 'entering'
+        };
+        updatedMessages = [...updatedMessages, newUserMessage];
       }
-  
+
       console.log('Messages to be sent:', updatedMessages);
-  
+
       const apiRequest: ApiRequest = {
         messages: updatedMessages,
         userInput: messageToSend,
         userName: userName,
         userSettings,
-        isRegeneration,
       };
-  
+
       console.log('API request:', apiRequest);
-  
+
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(apiRequest),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
-  
+
       const data = await response.json();
       console.log("Received response:", data);
-  
+
       setQueuePosition(data.queuePosition);
       setIsProcessing(true);
-  
+
       if (data.requestId) {
         await pollQueuePosition(data.requestId);
       } else {
         throw new Error('Failed to get a request ID');
       }
-  
-      if (isRegeneration) {
-        setRegenerationAttempts(prev => prev + 1);
-      } else {
+
+      if (isRegeneration && !error) {
         setRegenerationAttempts(0);
       }
     } catch (error) {
       console.error('Error:', error);
       setError(error instanceof Error ? error.message : 'An unexpected error occurred');
+      if (isRegeneration) {
+        setRegenerationAttempts(prev => prev + 1);
+      }
     } finally {
       setIsLoading(false);
       setQueuePosition(null);
       setIsProcessing(false);
     }
-  }, [chat.messages, inputValue, editedContent, userName, pollQueuePosition, userSettings, API_URL]);
+  }, [chat.messages, inputValue, editedContent, userName, pollQueuePosition, userSettings, API_URL, error]);
 
   const debouncedSendRequest = useCallback(
     (isRegeneration: boolean, editedMessageId: string | null, message: string) => {
@@ -462,14 +465,13 @@ const PneumaContent: React.FC = () => {
           return { ...prevChat, messages: updatedMessages };
         });
   
-        const messagesToSend = chat.messages.slice(0, lastUserIndex + 1);
         const lastUserMessage = chat.messages[lastUserIndex];
-        sendRequest(true, null, lastUserMessage.content, messagesToSend);
+        sendRequest(true, null, lastUserMessage.content);
       }, 300); // This should match the animation duration in CSS
     } else {
       setError("No user message found to regenerate response.");
     }
-  }, [chat.messages, sendRequest, regenerationAttempts, MAX_REGENERATION_ATTEMPTS, setChat, setError]);
+  }, [chat.messages, sendRequest, regenerationAttempts, MAX_REGENERATION_ATTEMPTS]);
 
   const handleReset = useCallback(() => {
     if (!isLoading) {

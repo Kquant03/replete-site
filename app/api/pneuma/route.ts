@@ -54,7 +54,6 @@ type QueueItem = {
   userInput: string;
   userName: string;
   userSettings: UserSettings;
-  isRegeneration: boolean;
   status: 'queued' | 'processing' | 'completed' | 'error';
   result?: string;
   systemPrompt?: string;
@@ -70,11 +69,11 @@ class Queue {
   private totalRequestsReceived = 0;
   private mutex = new Mutex();
 
-  async enqueue(messages: Message[], userInput: string, userName: string, userSettings: UserSettings, isRegeneration: boolean = false): Promise<{ id: string; position: number }> {
+  async enqueue(messages: Message[], userInput: string, userName: string, userSettings: UserSettings): Promise<{ id: string; position: number }> {
     return await this.mutex.runExclusive(() => {
       const id = generateUniqueId();
       this.totalRequestsReceived++;
-      const item: QueueItem = { id, messages, userInput, userName, userSettings, isRegeneration, status: 'queued', timestamp: Date.now() };
+      const item: QueueItem = { id, messages, userInput, userName, userSettings, status: 'queued', timestamp: Date.now() };
       this.queue.push(item);
       const position = this.queue.length;
       logger.info(`Enqueued request ${id} at position ${position}. Total requests: ${this.totalRequestsReceived}`);
@@ -338,7 +337,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       throw new Error('Invalid request body');
     }
 
-    const { messages, userInput, userName, userSettings, isRegeneration } = body;
+    const { messages, userInput, userName, userSettings } = body;
     if (!Array.isArray(messages) || typeof userInput !== 'string' || typeof userName !== 'string' || !userSettings) {
       throw new Error('Invalid messages, user input, user name, or user settings');
     }
@@ -347,9 +346,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     logger.info("User input:", userInput);
     logger.info("User name:", userName);
     logger.info("User settings:", JSON.stringify(userSettings, null, 2));
-    logger.info("Is regeneration:", isRegeneration);
 
-    const { id, position } = await globalQueue.enqueue(messages, userInput, userName, userSettings, isRegeneration);
+    const { id, position } = await globalQueue.enqueue(messages, userInput, userName, userSettings);
 
     logger.info(`Request ${id} enqueued at position ${position}`);
 
