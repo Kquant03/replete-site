@@ -1,6 +1,7 @@
 import { generateUniqueId } from './generateUniqueId';
 import { countTokens, estimateTokens } from './fastTokenizer';
 import { ChatState, Message, UserSettings } from './queue';
+import axios from 'axios';
 
 const TABBY_API_URL = process.env.TABBY_API_URL || 'http://localhost:5000';
 const TABBY_API_KEY = process.env.TABBY_API_KEY;
@@ -50,63 +51,52 @@ export async function pruneMessages(messages: Message[], systemPrompt: string): 
     return prunedMessages;
   }
 
-async function makeApiCall(prompt: string, parameters: UserSettings, retries = 0): Promise<string> {
-  const retryDelay = INITIAL_RETRY_DELAY * Math.pow(2, retries);
-  
-  try {
-    console.log(`Attempting API call to ${TABBY_API_URL} (attempt ${retries + 1})`);
+  async function makeApiCall(prompt: string, parameters: UserSettings, retries = 0): Promise<string> {
+    const retryDelay = INITIAL_RETRY_DELAY * Math.pow(2, retries);
     
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 seconds timeout
-
-    const response = await fetch(`${TABBY_API_URL}/v1/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${TABBY_API_KEY}`
-      },
-      body: JSON.stringify({
+    try {
+      console.log(`Attempting API call to ${TABBY_API_URL} (attempt ${retries + 1})`);
+      
+      const response = await axios.post(`${TABBY_API_URL}/v1/completions`, {
         model: "turbcat",
         prompt: prompt,
         ...parameters,
         stop: ["<|eot_id|>", "<|end_header_id|>"],
         stream: false,
-      }),
-      signal: controller.signal
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data.choices[0].text.trim();
-  } catch (error: unknown) {
-    console.error(`API call error (attempt ${retries + 1}):`, error);
-    
-    if (error instanceof Error) {
-      console.error('Error name:', error.name);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${TABBY_API_KEY}`
+        },
+        timeout: 30000 // 30 seconds timeout
+      });
+  
+      console.log('API response status:', response.status);
+      console.log('API response headers:', response.headers);
+  
+      return response.data.choices[0].text.trim();
+    } catch (error: unknown) {
+      console.error(`API call error (attempt ${retries + 1}):`, error);
       
-      if ('cause' in error && error.cause !== undefined) {
-        console.error('Error cause:', error.cause);
+      if (axios.isAxiosError(error)) {
+        console.error('Error response:', error.response?.data);
+        console.error('Error config:', error.config);
       }
-    } else {
-      console.error('Non-Error object thrown:', error);
+      
+      if (retries < MAX_RETRIES) {
+        console.log(`Retrying API call in ${retryDelay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        return makeApiCall(prompt, parameters, retries + 1);
+      }
+      
+      if (error instanceof Error) {
+        throw new Error(`API call failed after ${MAX_RETRIES} retries: ${error.message}`);
+      } else {
+        throw new Error(`API call failed after ${MAX_RETRIES} retries due to an unknown error`);
+      }
     }
-    
-    if (retries < MAX_RETRIES) {
-      console.log(`Retrying API call in ${retryDelay}ms...`);
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
-      return makeApiCall(prompt, parameters, retries + 1);
-    }
-    
-    throw new Error(`API call failed after ${MAX_RETRIES} retries: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
-}
+  
 
 export async function generateSystemPrompt(chatState: ChatState, userSettings: UserSettings): Promise<string> {
   const prompt = chatState.messages.map((m: Message) => {
