@@ -18,6 +18,7 @@ const nextConfig = {
       const publicWasmPath = path.join(process.cwd(), 'public', 'tiktoken_bg.wasm');
       
       if (fs.existsSync(tiktokenWasmPath)) {
+        fs.mkdirSync(path.dirname(publicWasmPath), { recursive: true });
         fs.copyFileSync(tiktokenWasmPath, publicWasmPath);
         console.log('Copied tiktoken_bg.wasm to public directory');
       } else {
