@@ -51,13 +51,21 @@ export async function GET(request: NextRequest) {
     if (status === 'completed') {
       const result = globalQueue.getResult(requestId);
       if (result) {
-        console.log(`[GET] Returning completed result for request ${requestId}`);
-        return NextResponse.json({ 
-          status, 
-          queuePosition: 0, 
-          result,
-          totalQueueLength: globalQueue.getTotalQueueLength()
-        });
+        if ('error' in result) {
+          console.log(`[GET] Error in result for request ${requestId}:`, result.error);
+          return NextResponse.json({ error: result.error }, { status: 500 });
+        } else {
+          console.log(`[GET] Returning completed result for request ${requestId}:`, JSON.stringify(result, null, 2));
+          return NextResponse.json({ 
+            status, 
+            queuePosition: 0, 
+            result: {
+              messages: result.messages,
+              systemPrompt: result.systemPrompt
+            },
+            totalQueueLength: globalQueue.getTotalQueueLength()
+          });
+        }
       } else {
         console.log(`[GET] Result not found for completed request ${requestId}`);
         return NextResponse.json({ error: "Result not found" }, { status: 404 });

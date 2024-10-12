@@ -7,7 +7,7 @@ const TABBY_API_KEY = process.env.TABBY_API_KEY;
 const AI_NAME = process.env.AI_NAME || "Pneuma";
 const MAX_RETRIES = 5;
 const INITIAL_RETRY_DELAY = 1000; // 1 second
-export const TOKEN_LIMIT = 6200;
+export const TOKEN_LIMIT = 7000;
 
 export async function initializeTokenizer(): Promise<void> {
   await initTokenizer('gpt-3.5-turbo');

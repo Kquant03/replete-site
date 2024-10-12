@@ -19,6 +19,19 @@ const nextConfig = {
       },
     ];
   },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Set-Cookie',
+            value: '__vercel_live_token=YourTokenValue; Path=/; SameSite=None; Secure'
+          }
+        ]
+      }
+    ]
+  }
 }
 
 const withMDX = createMDX({

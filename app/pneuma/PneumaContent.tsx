@@ -172,16 +172,16 @@ const PneumaContent: React.FC = () => {
         }
         const data = await response.json();
         console.log("Poll queue position response:", data);
-
+  
         setQueuePosition(data.queuePosition);
         setIsProcessing(data.status === 'processing');
-
+  
         if (data.status === 'completed') {
           setIsLoading(false);
           setQueuePosition(null);
           setIsProcessing(false);
           
-          if (data.result) {
+          if (data.result && data.result.messages) {
             setChat(prevChat => {
               const newMessages = data.result.messages.filter((msg: Message) => msg.role === 'assistant');
               return {
@@ -191,10 +191,13 @@ const PneumaContent: React.FC = () => {
               };
             });
             setGeneratedSystemPrompt(data.result.systemPrompt || '');
+          } else {
+            console.error('Received incomplete data:', data);
+            setError('Received incomplete data from server');
           }
           break;
         }
-
+  
         await new Promise(resolve => setTimeout(resolve, 2000));
       } catch (error) {
         console.error('Error polling queue position:', error);
@@ -202,7 +205,7 @@ const PneumaContent: React.FC = () => {
         break;
       }
     }
-  }, []);
+  }, [API_URL, setChat, setError, setGeneratedSystemPrompt, setIsLoading, setIsProcessing, setQueuePosition]);
 
   const sendRequest = useCallback(async (isRegeneration: boolean = false, editedMessageId: string | null = null, userMessage: string = '') => {
     try {
