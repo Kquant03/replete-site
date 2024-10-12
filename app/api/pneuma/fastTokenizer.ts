@@ -1,4 +1,4 @@
-import type { TiktokenModel } from 'tiktoken';
+import type { TiktokenModel, Tiktoken } from 'tiktoken';
 
 // Define the Message type
 type Message = {
@@ -7,7 +7,7 @@ type Message = {
   content: string;
 };
 
-let tokenizer: any;
+let tokenizer: Tiktoken;
 
 export async function initializeTokenizer(model: TiktokenModel = 'gpt-3.5-turbo') {
   if (!tokenizer) {

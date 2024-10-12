@@ -9,6 +9,7 @@ import ThinkingIndicator from './ThinkingIndicator';
 
 const DEFAULT_USER_NAME = process.env.NEXT_PUBLIC_USER_NAME || "H";
 const AI_NAME = "Pneuma";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/pneuma';
 
 type MessageStatus = 'entering' | 'active' | 'exiting' | 'sliding';
 
@@ -25,6 +26,7 @@ type Chat = {
   createdAt: Date;
   userId: string;
   messages: Message[];
+  systemPrompt: string;
 };
 
 type UserSettings = {
@@ -131,7 +133,8 @@ const PneumaContent: React.FC = () => {
     title: 'New Chat',
     createdAt: new Date(),
     userId: 'anonymous',
-    messages: []
+    messages: [],
+    systemPrompt: ''
   });
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -154,7 +157,6 @@ const PneumaContent: React.FC = () => {
   const [isPanelVisible, setIsPanelVisible] = useState(false);
   const [regenerationAttempts, setRegenerationAttempts] = useState(0);
   const MAX_REGENERATION_ATTEMPTS = 3;
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/pneuma';
 
   const contentRef = useRef<HTMLDivElement>(null);
   const chatWindowRef = useRef<HTMLDivElement>(null);
@@ -163,7 +165,7 @@ const PneumaContent: React.FC = () => {
   const pollQueuePosition = useCallback(async (requestId: string) => {
     while (true) {
       try {
-        const response = await fetch(`/api/pneuma?requestId=${requestId}`);
+        const response = await fetch(`${API_URL}?requestId=${requestId}`);
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
@@ -181,31 +183,11 @@ const PneumaContent: React.FC = () => {
           
           if (data.result) {
             setChat(prevChat => {
-              const lastUserMessageIndex = prevChat.messages.findLastIndex(msg => msg.role === 'user');
-              const newAssistantMessages = (data.result.messages as Message[])
-                .filter(msg => msg.role === 'assistant')
-                .map(msg => ({
-                  ...msg,
-                  status: 'entering' as const,
-                  id: msg.id || uuidv4()
-                }));
-
-              if (lastUserMessageIndex === -1) {
-                return {
-                  ...prevChat,
-                  messages: [...prevChat.messages, ...newAssistantMessages]
-                };
-              }
-
-              const updatedMessages = [
-                ...prevChat.messages.slice(0, lastUserMessageIndex + 1),
-                ...newAssistantMessages,
-                ...prevChat.messages.slice(lastUserMessageIndex + 1)
-              ];
-
+              const newMessages = data.result.messages.filter((msg: Message) => msg.role === 'assistant');
               return {
                 ...prevChat,
-                messages: updatedMessages
+                messages: [...prevChat.messages, ...newMessages],
+                systemPrompt: data.result.systemPrompt || prevChat.systemPrompt
               };
             });
             setGeneratedSystemPrompt(data.result.systemPrompt || '');
@@ -226,13 +208,13 @@ const PneumaContent: React.FC = () => {
     try {
       setIsLoading(true);
       setError(null);
-
+  
       let messageToSend = userMessage || inputValue;
       let updatedMessages = [...chat.messages];
-
+  
       console.log('sendRequest called with:', { isRegeneration, editedMessageId, userMessage });
       console.log('Initial messages:', updatedMessages);
-
+  
       if (isRegeneration) {
         console.log('Handling regeneration');
       } else if (editedMessageId) {
@@ -251,13 +233,18 @@ const PneumaContent: React.FC = () => {
         };
         updatedMessages = [...updatedMessages, newUserMessage];
       }
-
+  
+      setChat(prevChat => ({
+        ...prevChat,
+        messages: updatedMessages
+      }));
+  
       console.log('Messages to be sent:', updatedMessages);
-
+  
       const apiRequest: ApiRequest = {
         chatState: {
           messages: updatedMessages,
-          systemPrompt: generatedSystemPrompt
+          systemPrompt: chat.systemPrompt
         },
         userInput: messageToSend,
         userName: userName,
@@ -265,37 +252,45 @@ const PneumaContent: React.FC = () => {
         editedMessageId,
         userSettings,
       };
-
+  
       console.log('API request:', apiRequest);
-
+      console.log('Sending request to:', API_URL);
+  
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(apiRequest),
       });
-
+  
+      console.log('Response status:', response.status);
+      console.log('Response headers:', JSON.stringify(Object.fromEntries(response.headers.entries())));
+  
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Error response body:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
-
+  
       const data = await response.json();
-      console.log("Received response:", data);
-
-      setQueuePosition(data.queuePosition);
-      setIsProcessing(true);
-
+      console.log("Received response data:", JSON.stringify(data, null, 2));
+  
       if (data.requestId) {
         await pollQueuePosition(data.requestId);
       } else {
         throw new Error('Failed to get a request ID');
       }
-
+  
       if (isRegeneration && !error) {
         setRegenerationAttempts(0);
       }
+  
+      // Reset input field after successful request
+      if (!isRegeneration && !editedMessageId) {
+        setInputValue('');
+      }
+  
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error in sendRequest:', error);
       setError(error instanceof Error ? error.message : 'An unexpected error occurred');
       if (isRegeneration) {
         setRegenerationAttempts(prev => prev + 1);
@@ -305,12 +300,27 @@ const PneumaContent: React.FC = () => {
       setQueuePosition(null);
       setIsProcessing(false);
     }
-  }, [chat.messages, inputValue, editedContent, generatedSystemPrompt, userName, pollQueuePosition, userSettings, error]);
-
+  }, [
+    chat.messages,
+    chat.systemPrompt,
+    inputValue,
+    editedContent,
+    userName,
+    userSettings,
+    pollQueuePosition,
+    setChat,
+    setError,
+    setIsLoading,
+    setQueuePosition,
+    setIsProcessing,
+    setRegenerationAttempts,
+    setInputValue
+  ]);
+  
   const debouncedSendRequest = useCallback(
-    debounce((isRegeneration: boolean, editedMessageId: string | null, message: string) => 
-      sendRequest(isRegeneration, editedMessageId, message),
-    300),
+    debounce((isRegeneration: boolean, editedMessageId: string | null, message: string) => {
+      sendRequest(isRegeneration, editedMessageId, message);
+    }, 300),
     [sendRequest]
   );
 
@@ -387,17 +397,6 @@ const PneumaContent: React.FC = () => {
     const messageToSend = inputValue.trim();
     resetInputField();
     
-    const newUserMessage: Message = {
-      id: uuidv4(),
-      role: 'user',
-      content: messageToSend,
-      status: 'entering'
-    };
-    setChat(prevChat => ({
-      ...prevChat,
-      messages: [...prevChat.messages, newUserMessage]
-    }));
-
     debouncedSendRequest(false, null, messageToSend);
   };
 
@@ -408,13 +407,11 @@ const PneumaContent: React.FC = () => {
     setChat(prevChat => {
       const messages = [...prevChat.messages];
       
-      // Find the index of the last bot response
       let lastBotIndex = messages.length - 1;
       while (lastBotIndex >= 0 && messages[lastBotIndex].role !== 'assistant') {
         lastBotIndex--;
       }
   
-      // Find the index of the last user message before the bot response
       let lastUserIndex = lastBotIndex - 1;
       while (lastUserIndex >= 0 && messages[lastUserIndex].role !== 'user') {
         lastUserIndex--;
@@ -424,13 +421,11 @@ const PneumaContent: React.FC = () => {
       console.log('Last user message index:', lastUserIndex);
   
       if (lastBotIndex >= 0 && lastUserIndex >= 0) {
-        // Mark the last user message and bot response for deletion
         messages[lastUserIndex].status = 'exiting';
         messages[lastBotIndex].status = 'exiting';
   
         console.log('Marking for deletion:', messages[lastUserIndex], messages[lastBotIndex]);
   
-        // Mark all other messages for sliding
         for (let i = 0; i < lastUserIndex; i++) {
           messages[i].status = 'sliding';
         }
@@ -443,7 +438,6 @@ const PneumaContent: React.FC = () => {
       return prevChat;
     });
   
-    // Remove exiting messages and reset sliding status after animation
     setTimeout(() => {
       setChat(prevChat => {
         const updatedMessages = prevChat.messages
@@ -466,27 +460,24 @@ const PneumaContent: React.FC = () => {
       return;
     }
   
+    // Find the last user message
     const lastUserIndex = chat.messages.findLastIndex(m => m.role === 'user');
     
     if (lastUserIndex !== -1) {
-      setChat(prevChat => ({
-        ...prevChat,
-        messages: prevChat.messages.map((m, index) => 
-          index > lastUserIndex ? { ...m, status: 'exiting' as const } : m
-        )
-      }));
+      // Remove all messages after the last user message (including the last bot response)
+      setChat(prevChat => {
+        const updatedMessages = prevChat.messages.slice(0, lastUserIndex + 1);
+        return { ...prevChat, messages: updatedMessages };
+      });
   
-      setTimeout(() => {
-        setChat(prevChat => {
-          const updatedMessages = prevChat.messages
-            .filter(m => m.status !== 'exiting')
-            .map(m => ({ ...m, status: 'active' as const }));
-          return { ...prevChat, messages: updatedMessages };
-        });
+      // Get the last user message
+      const lastUserMessage = chat.messages[lastUserIndex];
   
-        const lastUserMessage = chat.messages[lastUserIndex];
-        sendRequest(true, null, lastUserMessage.content);
-      }, 300); // This should match the animation duration in CSS
+      // Increment regeneration attempts
+      setRegenerationAttempts(prev => prev + 1);
+  
+      // Call sendRequest with the last user message
+      await sendRequest(true, null, lastUserMessage.content);
     } else {
       setError("No user message found to regenerate response.");
     }
@@ -499,7 +490,8 @@ const PneumaContent: React.FC = () => {
         title: 'New Chat',
         createdAt: new Date(),
         userId: 'anonymous',
-        messages: []
+        messages: [],
+        systemPrompt: ''
       });
       localStorage.removeItem('currentChat');
       setQueuePosition(null);

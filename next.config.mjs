@@ -10,7 +10,15 @@ const nextConfig = {
     // This allows importing of WebAssembly files
     config.experiments = { ...config.experiments, asyncWebAssembly: true };
     return config;
-  }
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/pneuma',
+        destination: '/api/pneuma/route',
+      },
+    ];
+  },
 }
 
 const withMDX = createMDX({
