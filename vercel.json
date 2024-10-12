@@ -1,7 +1,14 @@
 {
-    "functions": {
-      "api/**/*.js": {
-        "includeFiles": ".next/server/chunks/tiktoken_bg.wasm"
+    "builds": [
+      {
+        "src": "package.json",
+        "use": "@vercel/next"
       }
-    }
+    ],
+    "routes": [
+      {
+        "src": "/tiktoken_bg.wasm",
+        "dest": "/tiktoken_bg.wasm"
+      }
+    ]
   }

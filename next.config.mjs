@@ -1,6 +1,6 @@
 import createMDX from '@next/mdx'
 import path from 'path'
-import CopyPlugin from 'copy-webpack-plugin'
+import fs from 'fs'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -12,17 +12,18 @@ const nextConfig = {
     // This allows importing of WebAssembly files
     config.experiments = { ...config.experiments, asyncWebAssembly: true };
     
-    // Copy the WebAssembly file to the output directory
-    config.plugins.push(
-      new CopyPlugin({
-        patterns: [
-          {
-            from: path.resolve('./node_modules/tiktoken/tiktoken_bg.wasm'),
-            to: path.resolve('./.next/server/chunks/'),
-          },
-        ],
-      })
-    );
+    // Copy tiktoken_bg.wasm to the public directory during build
+    if (isServer) {
+      const tiktokenWasmPath = path.join(process.cwd(), 'node_modules', 'tiktoken', 'tiktoken_bg.wasm');
+      const publicWasmPath = path.join(process.cwd(), 'public', 'tiktoken_bg.wasm');
+      
+      if (fs.existsSync(tiktokenWasmPath)) {
+        fs.copyFileSync(tiktokenWasmPath, publicWasmPath);
+        console.log('Copied tiktoken_bg.wasm to public directory');
+      } else {
+        console.error('tiktoken_bg.wasm not found in node_modules');
+      }
+    }
 
     return config;
   },
@@ -47,7 +48,7 @@ const nextConfig = {
       }
     ]
   },
-  output: 'standalone', // This is important for Vercel deployments
+  output: 'standalone',
 }
 
 const withMDX = createMDX({

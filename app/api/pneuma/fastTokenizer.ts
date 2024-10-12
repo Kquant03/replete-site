@@ -7,12 +7,21 @@ type Message = {
   content: string;
 };
 
+// Declare the global variable for TypeScript
+declare global {
+  interface Global {
+    __TIKTOKEN_WASM_PATH__?: string;
+  }
+}
+
 let tokenizer: Tiktoken;
 
 export async function initializeTokenizer(model: TiktokenModel = 'gpt-3.5-turbo') {
   if (!tokenizer) {
     const tiktoken = await import('tiktoken');
-    // We'll handle the WebAssembly file in next.config.mjs
+    // Set the location of the WebAssembly file
+    // @ts-expect-error: __TIKTOKEN_WASM_PATH__ is not recognized by TypeScript but is used by tiktoken
+    global.__TIKTOKEN_WASM_PATH__ = '/tiktoken_bg.wasm';
     tokenizer = await tiktoken.encoding_for_model(model);
   }
 }
