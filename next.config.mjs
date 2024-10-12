@@ -28,4 +28,12 @@ const nextConfig = {
   output: 'standalone',
 }
 
-export default createMDX(nextConfig)
+const withMDX = createMDX({
+  options: {
+    remarkPlugins: [],
+    rehypePlugins: [],
+  },
+})
+
+// Merge MDX config with Next.js config
+export default withMDX(nextConfig)
