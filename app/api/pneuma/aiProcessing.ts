@@ -1,5 +1,5 @@
 import { generateUniqueId } from './generateUniqueId';
-import { initializeTokenizer as initTokenizer, countTokens, estimateTokens } from './fastTokenizer';
+import { countTokens, estimateTokens } from './fastTokenizer';
 import { ChatState, Message, UserSettings } from './queue';
 
 const TABBY_API_URL = process.env.TABBY_API_URL || 'http://localhost:5000';
@@ -9,50 +9,46 @@ const MAX_RETRIES = 5;
 const INITIAL_RETRY_DELAY = 1000; // 1 second
 export const TOKEN_LIMIT = 7000;
 
-export async function initializeTokenizer(): Promise<void> {
-  await initTokenizer('gpt-3.5-turbo');
-}
-
 export async function pruneMessages(messages: Message[], systemPrompt: string): Promise<Message[]> {
-  const prunedMessages = [...messages];
-  let totalTokens = await estimateTokens(prunedMessages, systemPrompt);
-
-  console.log(`Initial message count: ${prunedMessages.length}`);
-  console.log(`Initial total tokens: ${totalTokens}`);
-
-  const MESSAGES_TO_REMOVE = 6;
-
-  while (totalTokens > TOKEN_LIMIT && prunedMessages.length > MESSAGES_TO_REMOVE) {
-    console.log(`Token count (${totalTokens}) exceeds limit (${TOKEN_LIMIT}). Attempting to remove earliest ${MESSAGES_TO_REMOVE} messages.`);
-    
-    const removedMessages = prunedMessages.splice(0, MESSAGES_TO_REMOVE);
-    const removedTokens = await estimateTokens(removedMessages, '');
-    
-    console.log(`Removed messages:`, removedMessages);
-    console.log(`Tokens in removed messages: ${removedTokens}`);
-
-    totalTokens = await estimateTokens(prunedMessages, systemPrompt);
-
-    console.log(`Updated message count: ${prunedMessages.length}`);
-    console.log(`Updated total tokens: ${totalTokens}`);
-
-    if (removedMessages.length === 0) {
-      console.error("Failed to remove messages. Breaking loop to prevent infinite iteration.");
-      break;
+    const prunedMessages = [...messages];
+    let totalTokens = estimateTokens(prunedMessages, systemPrompt);
+  
+    console.log(`Initial message count: ${prunedMessages.length}`);
+    console.log(`Initial total tokens: ${totalTokens}`);
+  
+    const MESSAGES_TO_REMOVE = 6;
+  
+    while (totalTokens > TOKEN_LIMIT && prunedMessages.length > MESSAGES_TO_REMOVE) {
+      console.log(`Token count (${totalTokens}) exceeds limit (${TOKEN_LIMIT}). Attempting to remove earliest ${MESSAGES_TO_REMOVE} messages.`);
+      
+      const removedMessages = prunedMessages.splice(0, MESSAGES_TO_REMOVE);
+      const removedTokens = estimateTokens(removedMessages, '');
+      
+      console.log(`Removed messages:`, removedMessages);
+      console.log(`Tokens in removed messages: ${removedTokens}`);
+  
+      totalTokens = estimateTokens(prunedMessages, systemPrompt);
+  
+      console.log(`Updated message count: ${prunedMessages.length}`);
+      console.log(`Updated total tokens: ${totalTokens}`);
+  
+      if (removedMessages.length === 0) {
+        console.error("Failed to remove messages. Breaking loop to prevent infinite iteration.");
+        break;
+      }
     }
+  
+    if (totalTokens <= TOKEN_LIMIT) {
+      console.log("Successfully pruned messages to fit within token limit.");
+    } else {
+      console.warn("Unable to prune messages sufficiently. Total tokens still exceed limit.");
+    }
+  
+    console.log(`Final message count: ${prunedMessages.length}`);
+    console.log(`Final total tokens: ${totalTokens}`);
+  
+    return prunedMessages;
   }
-
-  if (totalTokens <= TOKEN_LIMIT) {
-    console.log("Successfully pruned messages to fit within token limit.");
-  } else {
-    console.warn("Unable to prune messages sufficiently. Total tokens still exceed limit.");
-  }
-
-  console.log(`Final message count: ${prunedMessages.length}`);
-  console.log(`Final total tokens: ${totalTokens}`);
-
-  return prunedMessages;
-}
 
 async function makeApiCall(prompt: string, parameters: UserSettings, retries = 0): Promise<string> {
   const retryDelay = INITIAL_RETRY_DELAY * Math.pow(2, retries);
