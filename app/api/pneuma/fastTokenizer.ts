@@ -1,27 +1,26 @@
 import type { TiktokenModel, Tiktoken } from 'tiktoken';
+import path from 'path';
+import { promises as fs } from 'fs';
 
-// Define the Message type
 type Message = {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
 };
 
-// Declare the global variable for TypeScript
-declare global {
-  interface Global {
-    __TIKTOKEN_WASM_PATH__?: string;
-  }
-}
-
 let tokenizer: Tiktoken;
 
 export async function initializeTokenizer(model: TiktokenModel = 'gpt-3.5-turbo') {
   if (!tokenizer) {
     const tiktoken = await import('tiktoken');
-    // Set the location of the WebAssembly file
-    // @ts-expect-error: __TIKTOKEN_WASM_PATH__ is not recognized by TypeScript but is used by tiktoken
-    global.__TIKTOKEN_WASM_PATH__ = '/tiktoken_bg.wasm';
+    
+    // Dynamically load the WebAssembly file
+    const wasmPath = path.join(process.cwd(), 'public', 'tiktoken_bg.wasm');
+    const wasmBinary = await fs.readFile(wasmPath);
+    
+    // @ts-expect-error: __wasm property is not in the type definitions
+    tiktoken.__wasm = wasmBinary;
+    
     tokenizer = await tiktoken.encoding_for_model(model);
   }
 }
@@ -40,12 +39,9 @@ export async function estimateTokens(messages: Message[], systemPrompt: string):
 
   let tokenCount = 0;
 
-  // Count tokens in the system prompt
   tokenCount += tokenizer.encode(systemPrompt).length;
 
-  // Count tokens in each message
   for (const message of messages) {
-    // Every message follows <|start_header_id|>{role}<|end_header_id|>\n{content}<|eot_id|>
     tokenCount += 4; // For the special tokens
     tokenCount += tokenizer.encode(message.role).length;
     tokenCount += tokenizer.encode(message.content).length;
