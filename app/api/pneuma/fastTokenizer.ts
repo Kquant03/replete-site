@@ -12,6 +12,7 @@ let tokenizer: Tiktoken;
 export async function initializeTokenizer(model: TiktokenModel = 'gpt-3.5-turbo') {
   if (!tokenizer) {
     const tiktoken = await import('tiktoken');
+    // We'll handle the WebAssembly file in next.config.mjs
     tokenizer = await tiktoken.encoding_for_model(model);
   }
 }

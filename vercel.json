@@ -1,0 +1,7 @@
+{
+    "functions": {
+      "api/**/*.js": {
+        "includeFiles": ".next/server/chunks/tiktoken_bg.wasm"
+      }
+    }
+  }
