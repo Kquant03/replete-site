@@ -1,6 +1,5 @@
 import type { TiktokenModel, Tiktoken } from 'tiktoken';
-import path from 'path';
-import { promises as fs } from 'fs';
+import { tiktokenWasmBase64 } from './tiktokenWasm';
 
 type Message = {
   id: string;
@@ -14,9 +13,8 @@ export async function initializeTokenizer(model: TiktokenModel = 'gpt-3.5-turbo'
   if (!tokenizer) {
     const tiktoken = await import('tiktoken');
     
-    // Dynamically load the WebAssembly file
-    const wasmPath = path.join(process.cwd(), 'public', 'tiktoken_bg.wasm');
-    const wasmBinary = await fs.readFile(wasmPath);
+    // Decode the Base64 WebAssembly and create a Uint8Array
+    const wasmBinary = new Uint8Array(Buffer.from(tiktokenWasmBase64, 'base64'));
     
     // @ts-expect-error: __wasm property is not in the type definitions
     tiktoken.__wasm = wasmBinary;
