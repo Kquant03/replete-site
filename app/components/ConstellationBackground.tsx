@@ -5,6 +5,7 @@ import styles from '../styles/ConstellationBackground.module.css';
 const ConstellationBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [opacity, setOpacity] = useState(1);
   const particleCount = useMemo(() => window.innerWidth < 768 ? 60 : 120, []);
 
   useEffect(() => {
@@ -22,8 +23,8 @@ const ConstellationBackground: React.FC = () => {
     const fadeOutDuration = 3000;
     const borderWidth = 4;
 
-    let cursorX = -1000;
-    let cursorY = -1000;
+    let cursorX = window.innerWidth / 2;
+    let cursorY = window.innerHeight / 2;
     let isTouching = false;
 
     const particleColors = [
@@ -231,12 +232,13 @@ const ConstellationBackground: React.FC = () => {
       }
     }
 
-    let lastTime = 0;
+    let lastTime = performance.now();
     const fixedTimeStep = 1000 / 60; // 60 FPS
     let accumulatedTime = 0;
+    let animationFrameId: number;
 
     function updateParticles(deltaTime: number) {
-      if (!canvas) return;  // Early return if canvas is null
+      if (!canvas) return;
     
       let activeParticles = 0;
     
@@ -297,6 +299,8 @@ const ConstellationBackground: React.FC = () => {
       if (!ctx || !canvas) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      ctx.globalAlpha = opacity;
+
       for (let i = 0; i < particles.length; i++) {
         if (particles[i].active) {
           particles[i].draw(ctx);
@@ -323,8 +327,6 @@ const ConstellationBackground: React.FC = () => {
       }
     }
 
-    let animationFrameId: number;
-
     function animate(currentTime: number) {
       const deltaTime = currentTime - lastTime;
       lastTime = currentTime;
@@ -340,50 +342,36 @@ const ConstellationBackground: React.FC = () => {
       animationFrameId = requestAnimationFrame(animate);
     }
 
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        setOpacity(0);
+      } else {
+        const currentCanvas = canvasRef.current;
+        if (currentCanvas) {
+          initParticles(currentCanvas.width, currentCanvas.height);
+          setOpacity(0);
+          setTimeout(() => {
+            setOpacity(1);
+          }, 0);
+        }
+      }
+    }
+
     // Initialize canvas size and particles
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     initParticles(canvas.width, canvas.height);
 
-    // Handle visibility change
-    let hidden: string, visibilityChange: string;
-    if (typeof document.hidden !== "undefined") {
-      hidden = "hidden";
-      visibilityChange = "visibilitychange";
-    } else if (typeof (document as any).msHidden !== "undefined") {
-      hidden = "msHidden";
-      visibilityChange = "msvisibilitychange";
-    } else if (typeof (document as any).webkitHidden !== "undefined") {
-      hidden = "webkitHidden";
-      visibilityChange = "webkitvisibilitychange";
-    } else {
-      // Fallback if Page Visibility API is not supported
-      hidden = "hidden";
-      visibilityChange = "visibilitychange";
-    }
-
-    function handleVisibilityChange() {
-      if (document[hidden as keyof Document]) {
-        // Tab is hidden, pause the animation
-        cancelAnimationFrame(animationFrameId);
-      } else {
-        // Tab is visible, resume the animation
-        lastTime = performance.now();
-        accumulatedTime = 0;
-        animationFrameId = requestAnimationFrame(animate);
-      }
-    }
-
-    document.addEventListener(visibilityChange, handleVisibilityChange, false);
-
     // Start the animation
     animationFrameId = requestAnimationFrame(animate);
 
+    // Set up event listeners
     window.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
     canvas.addEventListener('touchmove', handleTouchMove, { passive: true });
     canvas.addEventListener('touchend', handleTouchEnd);
     window.addEventListener('resize', handleResize);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // Set isLoaded to true when the background is ready
     setIsLoaded(true);
@@ -396,7 +384,7 @@ const ConstellationBackground: React.FC = () => {
         canvas.removeEventListener('touchend', handleTouchEnd);
       }
       window.removeEventListener('resize', handleResize);
-      document.removeEventListener(visibilityChange, handleVisibilityChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       cancelAnimationFrame(animationFrameId);
     };
   }, [particleCount]);
@@ -408,7 +396,12 @@ const ConstellationBackground: React.FC = () => {
       animate={{ opacity: isLoaded ? 1 : 0 }}
       transition={{ duration: 1 }}
     >
-      <canvas ref={canvasRef} className={styles.constellationCanvas} />
+      <motion.canvas
+        ref={canvasRef}
+        className={styles.constellationCanvas}
+        animate={{ opacity: opacity }}
+        transition={{ duration: 1 }}
+      />
     </motion.div>
   );
 };
