@@ -5,8 +5,6 @@ const nextConfig = {
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
   experimental: {
     mdxRs: true,
-    TABBY_API_URL: process.env.TABBY_API_URL,
-    TABBY_API_KEY: process.env.TABBY_API_KEY,
   },
   webpack: (config, { isServer }) => {
     config.experiments = { ...config.experiments, asyncWebAssembly: true };
@@ -28,6 +26,10 @@ const nextConfig = {
     ];
   },
   output: 'standalone',
+  env: {
+    TABBY_API_URL: process.env.TABBY_API_URL,
+    TABBY_API_KEY: process.env.TABBY_API_KEY,
+  },
 }
 
 const withMDX = createMDX({
