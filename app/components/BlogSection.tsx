@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import styles from '../styles/BlogSection.module.css';
@@ -16,6 +16,15 @@ interface BlogSectionProps {
 }
 
 const BlogSection: React.FC<BlogSectionProps> = ({ posts }) => {
+  useEffect(() => {
+    posts.forEach(post => {
+      const mobileImg = new window.Image();
+      mobileImg.src = post.mobileImage;
+      const desktopImg = new window.Image();
+      desktopImg.src = post.desktopImage;
+    });
+  }, [posts]);
+
   return (
     <div className={styles.blogGrid}>
       {posts.map((post, index) => (

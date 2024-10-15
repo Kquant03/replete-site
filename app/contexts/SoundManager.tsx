@@ -1,13 +1,13 @@
-'use client';
 
+"use client";
 import React, { createContext, useContext, useState, useRef, useCallback, useEffect } from 'react';
 import { Howl, Howler } from 'howler';
 
 interface SoundContextType {
   isMuted: boolean;
   toggleMute: () => void;
-  fadeInBackgroundMusic: (duration: number, onFadeComplete?: () => void) => void;
-  fadeOutBackgroundMusic: (duration: number, onFadeComplete?: () => void) => void;
+  playBackgroundMusic: (fadeDuration: number) => void;
+  fadeOutBackgroundMusic: (duration: number) => void;
 }
 
 const SoundContext = createContext<SoundContextType | undefined>(undefined);
@@ -18,24 +18,17 @@ export const SoundProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isMuted, setIsMuted] = useState(false);
   const backgroundMusicRef = useRef<Howl | null>(null);
 
-  const createHowl = useCallback((src: string, loop: boolean = false, volume: number) => {
+  const createHowl = useCallback((src: string, loop: boolean = true, volume: number) => {
     return new Howl({
       src: [src],
-      preload: true,
       loop,
-      volume: volume,
+      volume,
     });
   }, []);
 
   useEffect(() => {
     console.log('SoundProvider: Initializing sounds');
-    backgroundMusicRef.current = createHowl('/sounds/home-background.mp3', false, 0);
-
-    return () => {
-      console.log('SoundProvider: Cleaning up sounds');
-      backgroundMusicRef.current?.stop();
-      backgroundMusicRef.current?.unload();
-    };
+    backgroundMusicRef.current = createHowl('/sounds/home-background.mp3', true, 0);
   }, [createHowl]);
 
   const toggleMute = useCallback(() => {
@@ -47,49 +40,24 @@ export const SoundProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   }, []);
 
-  const fadeInBackgroundMusic = useCallback((duration: number, onFadeComplete?: () => void) => {
-    console.log('SoundProvider: Fading in background music');
+  const playBackgroundMusic = useCallback((fadeDuration: number) => {
+    console.log('SoundProvider: Playing background music with fade-in');
     if (backgroundMusicRef.current) {
+      backgroundMusicRef.current.volume(0);
       backgroundMusicRef.current.play();
-      backgroundMusicRef.current.fade(0, BACKGROUND_MUSIC_VOLUME, duration * 1000);
-      backgroundMusicRef.current.once('fade', () => {
-        if (onFadeComplete) {
-          onFadeComplete();
-        }
-      });
-
-      // Set up the loop
-      const loopMusic = () => {
-        console.log('SoundProvider: Background music ended, fading out');
-        backgroundMusicRef.current?.fade(BACKGROUND_MUSIC_VOLUME, 0, duration * 1000);
-        backgroundMusicRef.current?.once('fade', () => {
-          console.log('SoundProvider: Background music faded out, fading in');
-          backgroundMusicRef.current?.seek(0);
-          backgroundMusicRef.current?.play();
-          backgroundMusicRef.current?.fade(0, BACKGROUND_MUSIC_VOLUME, duration * 1000);
-          backgroundMusicRef.current?.once('fade', () => {
-            console.log('SoundProvider: Background music faded in, waiting for end');
-          });
-        });
-      };
-
-      backgroundMusicRef.current.off('end');
-      backgroundMusicRef.current.on('end', loopMusic);
+      backgroundMusicRef.current.fade(0, BACKGROUND_MUSIC_VOLUME, fadeDuration * 1000);
+    } else {
+      console.error('Background music not initialized');
     }
   }, []);
 
-  const fadeOutBackgroundMusic = useCallback((duration: number, onFadeComplete?: () => void) => {
+  const fadeOutBackgroundMusic = useCallback((duration: number) => {
     console.log('SoundProvider: Fading out background music');
     if (backgroundMusicRef.current && backgroundMusicRef.current.playing()) {
       backgroundMusicRef.current.fade(BACKGROUND_MUSIC_VOLUME, 0, duration * 1000);
       backgroundMusicRef.current.once('fade', () => {
         backgroundMusicRef.current?.stop();
-        if (onFadeComplete) {
-          onFadeComplete();
-        }
       });
-    } else if (onFadeComplete) {
-      onFadeComplete();
     }
   }, []);
 
@@ -97,7 +65,7 @@ export const SoundProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <SoundContext.Provider value={{ 
       isMuted, 
       toggleMute,
-      fadeInBackgroundMusic,
+      playBackgroundMusic,
       fadeOutBackgroundMusic,
     }}>
       {children}

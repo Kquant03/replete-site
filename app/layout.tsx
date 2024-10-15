@@ -1,7 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import './globals.css';
-import { SoundProvider } from './contexts/SoundManager';
 import ClientLayout from './components/ClientLayout';
 
 export const metadata: Metadata = {
@@ -17,11 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <SoundProvider>
-          <ClientLayout>
-            {children}
-          </ClientLayout>
-        </SoundProvider>
+        <ClientLayout>
+          {children}
+        </ClientLayout>
       </body>
     </html>
   );

@@ -1,12 +1,11 @@
-'use client';
-
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import styles from '../styles/ConstellationBackground.module.css';
 
 const ConstellationBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const particleCount = useMemo(() => window.innerWidth < 768 ? 60 : 120, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -16,7 +15,6 @@ const ConstellationBackground: React.FC = () => {
     if (!ctx) return;
 
     const particles: Particle[] = [];
-    const particleCount = window.innerWidth < 768 ? 60 : 120;
     const maxDistance = 120;
     const minAge = 30000;
     const maxAge = 60000;
@@ -27,6 +25,8 @@ const ConstellationBackground: React.FC = () => {
     let cursorX = -1000;
     let cursorY = -1000;
     let isTouching = false;
+    let animationFrameId: number;
+    let lastTime = 0;
 
     const particleColors = [
       'rgb(0, 191, 255)',   // Deep Sky Blue
@@ -238,7 +238,6 @@ const ConstellationBackground: React.FC = () => {
     canvas.height = window.innerHeight;
     initParticles(canvas.width, canvas.height);
 
-    let lastTime = 0;
     function animate(currentTime: number) {
       const deltaTime = currentTime - lastTime;
       lastTime = currentTime;
@@ -311,11 +310,11 @@ const ConstellationBackground: React.FC = () => {
         }
       }
 
-      requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(animate);
     }
 
     // Start the animation
-    requestAnimationFrame(animate);
+    animationFrameId = requestAnimationFrame(animate);
 
     window.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -332,8 +331,9 @@ const ConstellationBackground: React.FC = () => {
       canvas.removeEventListener('touchmove', handleTouchMove);
       canvas.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [particleCount]);
 
   return (
     <motion.div
@@ -347,4 +347,4 @@ const ConstellationBackground: React.FC = () => {
   );
 };
 
-export default ConstellationBackground;
+export default React.memo(ConstellationBackground);

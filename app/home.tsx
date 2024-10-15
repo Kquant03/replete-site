@@ -13,10 +13,11 @@ import OfferingSection from './components/OfferingSection';
 import BlogSection from './components/BlogSection';
 import { useSound } from './contexts/SoundManager';
 import ConstellationBackground from './components/ConstellationBackground';
+import HomePageSound from './components/HomePageSound';
 
 const Home: React.FC = () => {
   const { scrollY } = useScroll();
-  const { fadeInBackgroundMusic, fadeOutBackgroundMusic } = useSound();
+  const { fadeOutBackgroundMusic } = useSound();
   const [isLoaded, setIsLoaded] = useState(false);
 
   const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
@@ -26,14 +27,13 @@ const Home: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoaded(true);
-      fadeInBackgroundMusic(2);
     }, 500);
 
     return () => {
       clearTimeout(timer);
       fadeOutBackgroundMusic(2);
     };
-  }, [fadeInBackgroundMusic, fadeOutBackgroundMusic]);
+  }, [fadeOutBackgroundMusic]);
 
   const pageVariants = {
     initial: { opacity: 0 },
@@ -132,169 +132,178 @@ const Home: React.FC = () => {
   ];
 
   return (
-    <div className={styles.homeContainer}>
-      <ConstellationBackground />
-      <AnimatePresence>
-        {isLoaded && (
-          <motion.div
-            className={styles.content}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            variants={pageVariants}
-          >
-            <Header />
-            <motion.div variants={contentVariants}>
-              <motion.section 
-                className={styles.hero}
-                style={{ 
-                  opacity: heroOpacity, 
-                  scale: heroScale,
-                  y: heroTranslateY
-                }}
-              >
-                <div className={styles.heroContent}>
-                  <motion.h1 className={`${styles.heading} ${styles.heroTitle}`} variants={contentVariants}>
-                    Holistic Systems
-                    <br />
-                    for a Better Future
-                  </motion.h1>
-                  <motion.p className={`${styles.text} ${styles.heroDescription}`} variants={contentVariants}>
-                    Exploring the path towards improving artificial intelligence.
-                  </motion.p>
-                  <motion.div className={styles.heroButtons} variants={contentVariants}>
-                    <Link href="/pneuma" className={styles.primaryButton}>
-                      Meet Pneuma
-                    </Link>
-                    <Link href="/about" className={styles.secondaryButton}>
-                      Learn More
-                    </Link>
-                  </motion.div>
-                </div>
-              </motion.section>
-              <main>
+    <HomePageSound>
+      <div className={styles.homeContainer}>
+        <ConstellationBackground />
+        <AnimatePresence>
+          {isLoaded && (
+            <motion.div
+              className={styles.content}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={pageVariants}
+            >
+              <Header />
+              <motion.div variants={contentVariants}>
+                {/* Hero Section */}
                 <motion.section 
-                  className={`${sectionStyles.section} ${sectionStyles.offeringsSection}`}
-                  variants={sectionVariants}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.2 }}
+                  className={styles.hero}
+                  style={{ 
+                    opacity: heroOpacity, 
+                    scale: heroScale,
+                    y: heroTranslateY
+                  }}
                 >
-                  <div className={sectionStyles.sectionContent}>
-                    <h2 className={`${styles.heading} ${sectionStyles.sectionTitle}`}>Our Work</h2>
-                    <p className={`${styles.text} ${sectionStyles.sectionDescription}`}>
-                      Enjoy a comprehensive suite of projects and materials, created with passion and love by our community.
-                    </p>
-                    <OfferingSection offerings={offerings} />
+                  <div className={styles.heroContent}>
+                    <motion.h1 className={`${styles.heading} ${styles.heroTitle}`} variants={contentVariants}>
+                      Holistic Systems
+                      <br />
+                      for a Better Future
+                    </motion.h1>
+                    <motion.p className={`${styles.text} ${styles.heroDescription}`} variants={contentVariants}>
+                      Exploring the path towards improving artificial intelligence.
+                    </motion.p>
+                    <motion.div className={styles.heroButtons} variants={contentVariants}>
+                      <Link href="/pneuma" className={styles.primaryButton}>
+                        Meet Pneuma
+                      </Link>
+                      <Link href="/about" className={styles.secondaryButton}>
+                        Learn More
+                      </Link>
+                    </motion.div>
                   </div>
                 </motion.section>
 
-                <motion.section 
-                  className={`${sectionStyles.section} ${sectionStyles.blogSection}`}
-                  variants={sectionVariants}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.25 }}
-                >
-                  <div className={sectionStyles.sectionContent}>
-                    <h2 className={`${styles.heading} ${sectionStyles.sectionTitle}`}>Replete Blog</h2>
-                    <p className={`${styles.text} ${sectionStyles.sectionDescription}`}>
-                      Check out our latest endeavors with leading AI products and services.
-                    </p>
-                    <BlogSection posts={blogPosts} />
-                    <div className={sectionStyles.centerButton}>
-                      <Link href="/blog" className={styles.primaryButton}>
-                        See Full Blog <FiArrowRight />
-                      </Link>
+                <main>
+                  {/* Offerings Section */}
+                  <motion.section 
+                    className={`${sectionStyles.section} ${sectionStyles.offeringsSection}`}
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.2 }}
+                  >
+                    <div className={sectionStyles.sectionContent}>
+                      <h2 className={`${styles.heading} ${sectionStyles.sectionTitle}`}>Our Work</h2>
+                      <p className={`${styles.text} ${sectionStyles.sectionDescription}`}>
+                        Enjoy a comprehensive suite of projects and materials, created with passion and love by our community.
+                      </p>
+                      <OfferingSection offerings={offerings} />
                     </div>
-                  </div>
-                </motion.section>
+                  </motion.section>
 
-                <motion.section 
-                  className={`${sectionStyles.section} ${sectionStyles.aboutSection}`}
-                  variants={sectionVariants}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.3 }}
-                >
-                  <div className={sectionStyles.sectionContent}>
-                    <h2 className={`${styles.heading} ${sectionStyles.sectionTitle}`}>About Us</h2>
-                    <p className={`${styles.text} ${sectionStyles.sectionDescription}`}>
-                      Replete AI is an organization that takes pride in the history of artificial intelligence and wishes to restore this field to its former glory. With open-source research and a focus on long-term solutions, we aim to help attain what was once the original goal of AI: to digitalize human intelligence and all of its components.
-                    </p>
-                    <div className={sectionStyles.centerButton}>
-                      <Link href="/about" className={styles.primaryButton}>
-                        Learn More <FiArrowRight />
-                      </Link>
+                  {/* Blog Section */}
+                  <motion.section 
+                    className={`${sectionStyles.section} ${sectionStyles.blogSection}`}
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.25 }}
+                  >
+                    <div className={sectionStyles.sectionContent}>
+                      <h2 className={`${styles.heading} ${sectionStyles.sectionTitle}`}>Replete Blog</h2>
+                      <p className={`${styles.text} ${sectionStyles.sectionDescription}`}>
+                        Check out our latest endeavors with leading AI products and services.
+                      </p>
+                      <BlogSection posts={blogPosts} />
+                      <div className={sectionStyles.centerButton}>
+                        <Link href="/blog" className={styles.primaryButton}>
+                          See Full Blog <FiArrowRight />
+                        </Link>
+                      </div>
                     </div>
-                  </div>
-                </motion.section>
+                  </motion.section>
 
-                <motion.section 
-                  className={`${sectionStyles.section} ${sectionStyles.discordSection}`}
-                  variants={sectionVariants}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.3 }}
-                >
-                  <div className={sectionStyles.sectionContent}>
-                    <h2 className={`${styles.heading} ${sectionStyles.sectionTitle}`}>Join Our Discord</h2>
-                    <p className={`${styles.text} ${sectionStyles.sectionDescription}`}>
-                      Connect with fellow AI enthusiasts, share your projects, and learn from experts in our vibrant Discord community.
-                    </p>
-                    <div className={sectionStyles.centerButton}>
-                      <Link href="/discord" className={styles.primaryButton}>
-                        Join Discord <FiArrowRight />
-                      </Link>
+                  {/* About Section */}
+                  <motion.section 
+                    className={`${sectionStyles.section} ${sectionStyles.aboutSection}`}
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.3 }}
+                  >
+                    <div className={sectionStyles.sectionContent}>
+                      <h2 className={`${styles.heading} ${sectionStyles.sectionTitle}`}>About Us</h2>
+                      <p className={`${styles.text} ${sectionStyles.sectionDescription}`}>
+                        Replete AI is an organization that takes pride in the history of artificial intelligence and wishes to restore this field to its former glory. With open-source research and a focus on long-term solutions, we aim to help attain what was once the original goal of AI: to digitalize human intelligence and all of its components.
+                      </p>
+                      <div className={sectionStyles.centerButton}>
+                        <Link href="/about" className={styles.primaryButton}>
+                          Learn More <FiArrowRight />
+                        </Link>
+                      </div>
                     </div>
-                  </div>
-                </motion.section>
-              </main>
+                  </motion.section>
 
-              <footer className={styles.footer}>
-                <div className={styles.footerContent}>
-                  <div className={styles.footerTop}>
-                    <div className={styles.footerLogo}>
-                      <Image src="/logo.png" alt="Replete AI Logo" width={40} height={40} />
-                      <span className={styles.heading}>Replete AI</span>
+                  {/* Discord Section */}
+                  <motion.section 
+                    className={`${sectionStyles.section} ${sectionStyles.discordSection}`}
+                    variants={sectionVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.3 }}
+                  >
+                    <div className={sectionStyles.sectionContent}>
+                      <h2 className={`${styles.heading} ${sectionStyles.sectionTitle}`}>Join Our Discord</h2>
+                      <p className={`${styles.text} ${sectionStyles.sectionDescription}`}>
+                        Connect with fellow AI enthusiasts, share your projects, and learn from experts in our vibrant Discord community.
+                      </p>
+                      <div className={sectionStyles.centerButton}>
+                        <Link href="/discord" className={styles.primaryButton}>
+                          Join Discord <FiArrowRight />
+                        </Link>
+                      </div>
                     </div>
-                    <div className={styles.socialLinks}>
-                      <Link href="https://huggingface.co/">
-                        <Image
-                          src="/huggingface-logo.png"
-                          alt="HuggingFace"
-                          width={24}
-                          height={24}
-                        />
-                      </Link>
-                      <Link href="https://github.com/Replete-AI">
-                        <FaGithub size={24} />
-                      </Link>
-                      <Link href="https://discord.gg/awyCNx3nnw">
-                        <Image
-                          src="/discord-logo.png"
-                          alt="Discord"
-                          width={24}
-                          height={24}
-                        />
-                      </Link>
+                  </motion.section>
+                </main>
+
+                {/* Footer */}
+                <footer className={styles.footer}>
+                  <div className={styles.footerContent}>
+                    <div className={styles.footerTop}>
+                      <div className={styles.footerLogo}>
+                        <Image src="/logo.png" alt="Replete AI Logo" width={40} height={40} priority />
+                        <span className={styles.heading}>Replete AI</span>
+                      </div>
+                      <div className={styles.socialLinks}>
+                        <Link href="https://huggingface.co/">
+                          <Image
+                            src="/huggingface-logo.png"
+                            alt="HuggingFace"
+                            width={24}
+                            height={24}
+                          />
+                        </Link>
+                        <Link href="https://github.com/Replete-AI">
+                          <FaGithub size={24} />
+                        </Link>
+                        <Link href="https://discord.gg/awyCNx3nnw">
+                          <Image
+                            src="/discord-logo.png"
+                            alt="Discord"
+                            width={24}
+                            height={24}
+                          />
+                        </Link>
+                      </div>
+                    </div>
+                    <nav className={styles.footerNav}>
+                      <Link href="/privacy">Privacy Policy</Link>
+                      <Link href="/tos">Terms of Service</Link>
+                      <Link href="/contact">Contact Us</Link>
+                    </nav>
+                    <div className={styles.footerBottom}>
+                      <p className={styles.text}>&copy; {new Date().getFullYear()} Replete AI. All rights reserved.</p>
                     </div>
                   </div>
-                  <nav className={styles.footerNav}>
-                    <Link href="/privacy">Privacy Policy</Link>
-                    <Link href="/tos">Terms of Service</Link>
-                    <Link href="/contact">Contact Us</Link>
-                  </nav>
-                  <div className={styles.footerBottom}>
-                    <p className={styles.text}>&copy; {new Date().getFullYear()} Replete AI. All rights reserved.</p>
-                  </div>
-                </div>
-              </footer>
+                </footer>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+          )}
+        </AnimatePresence>
+      </div>
+    </HomePageSound>
   );
 };
 
