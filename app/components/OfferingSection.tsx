@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -17,6 +17,16 @@ interface OfferingSectionProps {
 }
 
 const OfferingSection: React.FC<OfferingSectionProps> = ({ offerings }) => {
+  const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    offerings.forEach(offering => {
+      const img = new window.Image();
+      img.src = offering.image;
+      img.onload = () => setImagesLoaded(prev => ({ ...prev, [offering.image]: true }));
+    });
+  }, [offerings]);
+
   const containerVariants = {
     hidden: {},
     visible: {
@@ -54,13 +64,15 @@ const OfferingSection: React.FC<OfferingSectionProps> = ({ offerings }) => {
         >
           <Link href={offering.link}>
             <div className={styles.offeringImage}>
-              <Image 
-                src={offering.image} 
-                alt={offering.title} 
-                fill
-                sizes="(max-width: 768px) 100vw, 33vw"
-                style={{ objectFit: 'cover' }}
-              />
+              {imagesLoaded[offering.image] && (
+                <Image 
+                  src={offering.image} 
+                  alt={offering.title} 
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  style={{ objectFit: 'cover' }}
+                />
+              )}
             </div>
             <div className={styles.offeringContent}>
               <h3 className={styles.offeringTitle}>{offering.title}</h3>

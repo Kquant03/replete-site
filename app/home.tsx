@@ -176,7 +176,7 @@ const Home: React.FC = () => {
                 </motion.section>
 
                 <main>
-                  {/* Offerings Section */}
+                {/* Offerings Section */}
                   <motion.section 
                     className={`${sectionStyles.section} ${sectionStyles.offeringsSection}`}
                     variants={sectionVariants}

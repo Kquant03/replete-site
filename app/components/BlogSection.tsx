@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -17,6 +17,18 @@ interface BlogSectionProps {
 }
 
 const BlogSection: React.FC<BlogSectionProps> = ({ posts }) => {
+  const [imagesLoaded, setImagesLoaded] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    posts.forEach(post => {
+      [post.mobileImage, post.desktopImage].forEach(src => {
+        const img = new window.Image();
+        img.src = src;
+        img.onload = () => setImagesLoaded(prev => ({ ...prev, [src]: true }));
+      });
+    });
+  }, [posts]);
+
   const containerVariants = {
     hidden: {},
     visible: {
@@ -54,20 +66,24 @@ const BlogSection: React.FC<BlogSectionProps> = ({ posts }) => {
         >
           <Link href={post.link}>
             <div className={styles.postImage}>
-              <Image 
-                src={post.mobileImage} 
-                alt={post.title} 
-                fill
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className={styles.mobileImage}
-              />
-              <Image 
-                src={post.desktopImage} 
-                alt={post.title} 
-                fill
-                sizes="50vw"
-                className={styles.desktopImage}
-              />
+              {imagesLoaded[post.mobileImage] && (
+                <Image 
+                  src={post.mobileImage} 
+                  alt={post.title} 
+                  fill
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className={styles.mobileImage}
+                />
+              )}
+              {imagesLoaded[post.desktopImage] && (
+                <Image 
+                  src={post.desktopImage} 
+                  alt={post.title} 
+                  fill
+                  sizes="50vw"
+                  className={styles.desktopImage}
+                />
+              )}
             </div>
             <div className={styles.postContent}>
               <h3 className={styles.postTitle}>{post.title}</h3>
