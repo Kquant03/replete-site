@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 import styles from '../styles/OfferingSection.module.css';
 
 interface Offering {
@@ -8,7 +9,7 @@ interface Offering {
   description: string;
   image: string;
   link: string;
-  ctaText?: string;
+  ctaText: string;
 }
 
 interface OfferingSectionProps {
@@ -16,17 +17,41 @@ interface OfferingSectionProps {
 }
 
 const OfferingSection: React.FC<OfferingSectionProps> = ({ offerings }) => {
-  useEffect(() => {
-    offerings.forEach(offering => {
-      const img = new window.Image();
-      img.src = offering.image;
-    });
-  }, [offerings]);
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut"
+      }
+    }
+  };
 
   return (
-    <div className={styles.offeringsGrid}>
+    <motion.div 
+      className={styles.offeringsGrid}
+      variants={containerVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.1 }}
+    >
       {offerings.map((offering, index) => (
-        <div key={index} className={styles.offeringCard}>
+        <motion.div 
+          key={index} 
+          className={styles.offeringCard}
+          variants={itemVariants}
+        >
           <Link href={offering.link}>
             <div className={styles.offeringImage}>
               <Image 
@@ -41,13 +66,13 @@ const OfferingSection: React.FC<OfferingSectionProps> = ({ offerings }) => {
               <h3 className={styles.offeringTitle}>{offering.title}</h3>
               <p className={styles.offeringDescription}>{offering.description}</p>
               <div className={styles.exploreMore}>
-                {offering.ctaText || 'Explore More'} &rarr;
+                {offering.ctaText} &rarr;
               </div>
             </div>
           </Link>
-        </div>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 };
 

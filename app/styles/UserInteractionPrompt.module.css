@@ -35,7 +35,7 @@
 
 @media (max-width: 768px) {
   .promptContainer {
-    top: 2rem;  /* Adjusted for smaller screens */
+    top: 4rem;  /* Adjusted for smaller screens */
     left: 10px;
   }
   

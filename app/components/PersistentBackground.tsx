@@ -1,33 +1,34 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import ConstellationBackground from './ConstellationBackground';
 
 const PersistentBackground: React.FC = () => {
-  const backgroundRef = useRef<HTMLDivElement | null>(null);
-  const [isMounted, setIsMounted] = React.useState(false);
+  const [backgroundElement, setBackgroundElement] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    backgroundRef.current = document.createElement('div');
-    backgroundRef.current.style.position = 'fixed';
-    backgroundRef.current.style.top = '0';
-    backgroundRef.current.style.left = '0';
-    backgroundRef.current.style.width = '100%';
-    backgroundRef.current.style.height = '100%';
-    backgroundRef.current.style.zIndex = '-1';
+    const element = document.createElement('div');
+    element.style.position = 'fixed';
+    element.style.top = '0';
+    element.style.left = '0';
+    element.style.width = '100%';
+    element.style.height = '100%';
+    element.style.zIndex = '-1';
     
-    document.body.appendChild(backgroundRef.current);
-    setIsMounted(true);
+    document.body.appendChild(element);
+    setBackgroundElement(element);
 
     return () => {
-      if (backgroundRef.current) {
-        document.body.removeChild(backgroundRef.current);
+      if (element && element.parentNode) {
+        element.parentNode.removeChild(element);
       }
     };
   }, []);
 
-  return isMounted && backgroundRef.current
-    ? createPortal(<ConstellationBackground />, backgroundRef.current)
-    : null;
+  if (!backgroundElement) {
+    return null;
+  }
+
+  return createPortal(<ConstellationBackground />, backgroundElement);
 };
 
 export default PersistentBackground;

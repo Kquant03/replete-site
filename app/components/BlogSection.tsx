@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 import styles from '../styles/BlogSection.module.css';
 
 interface BlogPost {
@@ -16,19 +17,41 @@ interface BlogSectionProps {
 }
 
 const BlogSection: React.FC<BlogSectionProps> = ({ posts }) => {
-  useEffect(() => {
-    posts.forEach(post => {
-      const mobileImg = new window.Image();
-      mobileImg.src = post.mobileImage;
-      const desktopImg = new window.Image();
-      desktopImg.src = post.desktopImage;
-    });
-  }, [posts]);
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut"
+      }
+    }
+  };
 
   return (
-    <div className={styles.blogGrid}>
+    <motion.div 
+      className={styles.blogGrid}
+      variants={containerVariants}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.1 }}
+    >
       {posts.map((post, index) => (
-        <div key={index} className={styles.postCard}>
+        <motion.div 
+          key={index} 
+          className={styles.postCard}
+          variants={itemVariants}
+        >
           <Link href={post.link}>
             <div className={styles.postImage}>
               <Image 
@@ -52,9 +75,9 @@ const BlogSection: React.FC<BlogSectionProps> = ({ posts }) => {
               <div className={styles.readMore}>Read More &rarr;</div>
             </div>
           </Link>
-        </div>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 };
 

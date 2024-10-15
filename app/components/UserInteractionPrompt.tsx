@@ -29,9 +29,9 @@ const UserInteractionPrompt: React.FC<UserInteractionPromptProps> = ({ isVisible
           exit="exit"
         >
           <div className={styles.promptText}>
-            Enhance your experience
+          Click anywhere
             <br />
-            Click anywhere
+            For background music
           </div>
         </motion.div>
       )}
