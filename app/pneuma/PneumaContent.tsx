@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, ChangeEvent, FormEvent, KeyboardEvent, MouseEvent as ReactMouseEvent } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import debounce from 'lodash/debounce';
 import styles from '../styles/pneuma.module.css';
 import { FiEdit2, FiCopy, FiCheck, FiX, FiRefreshCw, FiTrash2, FiSend } from 'react-icons/fi';
@@ -10,6 +9,8 @@ import ThinkingIndicator from './ThinkingIndicator';
 const DEFAULT_USER_NAME = process.env.NEXT_PUBLIC_USER_NAME || "H";
 const AI_NAME = "Pneuma";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/api/pneuma';
+
+const PREDEFINED_SYSTEM_PROMPT = `You are Pneuma, an AI assistant designed to engage in meaningful conversations. Your responses should be thoughtful, empathetic, and tailored to the user's input. Always strive to understand the context and provide relevant, helpful information.`;
 
 type MessageStatus = 'entering' | 'active' | 'exiting' | 'sliding';
 
@@ -39,6 +40,7 @@ type UserSettings = {
 };
 
 type ApiRequest = {
+  chatId: string;
   chatState: {
     messages: Message[];
     systemPrompt: string;
@@ -48,6 +50,7 @@ type ApiRequest = {
   isRegeneration: boolean;
   editedMessageId: string | null;
   userSettings: UserSettings;
+  usePreDefinedPrompt: boolean;
 };
 
 const MessageItem: React.FC<{
@@ -73,7 +76,7 @@ const MessageItem: React.FC<{
 }) => {
   return (
     <div 
-      className={styles.message}
+      className={`${styles.message}`}
       data-role={message.role}
       data-status={message.status}
     >
@@ -128,8 +131,9 @@ const MessageItem: React.FC<{
 MessageItem.displayName = 'MessageItem';
 
 const PneumaContent: React.FC = () => {
+  const [chatId, setChatId] = useState<string>('');
   const [chat, setChat] = useState<Chat>({
-    id: uuidv4(),
+    id: '',
     title: 'New Chat',
     createdAt: new Date(),
     userId: 'anonymous',
@@ -156,11 +160,50 @@ const PneumaContent: React.FC = () => {
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [isPanelVisible, setIsPanelVisible] = useState(false);
   const [regenerationAttempts, setRegenerationAttempts] = useState(0);
+  const [animationPhase, setAnimationPhase] = useState<'idle' | 'fading' | 'sliding'>('idle');
+  const [messagesToRemove, setMessagesToRemove] = useState<string[]>([]);
+
   const MAX_REGENERATION_ATTEMPTS = 3;
 
   const contentRef = useRef<HTMLDivElement>(null);
   const chatWindowRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const newChatId = uuidv4();
+    setChatId(newChatId);
+    setChat({
+      id: newChatId,
+      title: 'New Chat',
+      createdAt: new Date(),
+      userId: 'anonymous',
+      messages: [],
+      systemPrompt: ''
+    });
+
+    localStorage.removeItem('currentChat');
+    localStorage.removeItem('chatId');
+
+    setInputValue('');
+    setError(null);
+    setGeneratedSystemPrompt('');
+    setEditingMessageId(null);
+    setEditedContent('');
+    setQueuePosition(null);
+    setIsProcessing(false);
+    setCopiedMessageId(null);
+    setRegenerationAttempts(0);
+
+    setUserSettings({
+      temperature: 0.7,
+      top_p: 0.9,
+      max_tokens: 1024,
+      repetition_penalty: 1.05,
+      min_p: 0.05,
+      top_k: 0,
+    });
+  }, []);
 
   const pollQueuePosition = useCallback(async (requestId: string) => {
     while (true) {
@@ -171,53 +214,61 @@ const PneumaContent: React.FC = () => {
           throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        console.log("Poll queue position response:", data);
-  
+        console.log("Poll queue position response:", JSON.stringify(data, null, 2));
+
         setQueuePosition(data.queuePosition);
         setIsProcessing(data.status === 'processing');
-  
+
         if (data.status === 'completed') {
           setIsLoading(false);
           setQueuePosition(null);
           setIsProcessing(false);
           
-          if (data.result && data.result.messages) {
-            setChat(prevChat => {
-              const newMessages = data.result.messages.filter((msg: Message) => msg.role === 'assistant');
-              return {
-                ...prevChat,
-                messages: [...prevChat.messages, ...newMessages],
-                systemPrompt: data.result.systemPrompt || prevChat.systemPrompt
-              };
-            });
-            setGeneratedSystemPrompt(data.result.systemPrompt || '');
+          if (data.result) {
+            console.log("Completed request result:", JSON.stringify(data.result, null, 2));
+            return data;
           } else {
-            console.error('Received incomplete data:', data);
-            setError('Received incomplete data from server');
+            console.error("Completed request has no result:", data);
+            throw new Error('Completed request has no result');
           }
-          break;
         }
-  
+
         await new Promise(resolve => setTimeout(resolve, 2000));
       } catch (error) {
         console.error('Error polling queue position:', error);
         setError(error instanceof Error ? error.message : 'Error checking queue position. Please try again.');
-        break;
+        throw error;
       }
     }
-  }, [API_URL, setChat, setError, setGeneratedSystemPrompt, setIsLoading, setIsProcessing, setQueuePosition]);
+  }, []);
+
+  const addMessage = useCallback((newMessage: Message) => {
+    setChat(prevChat => {
+      const updatedMessages = [...prevChat.messages, { ...newMessage, status: 'entering' as MessageStatus }];
+      return { ...prevChat, messages: updatedMessages };
+    });
+  
+    setTimeout(() => {
+      setChat(prevChat => {
+        const updatedMessages = prevChat.messages.map(msg => 
+          msg.id === newMessage.id ? { ...msg, status: 'active' as MessageStatus } : msg
+        );
+        return { ...prevChat, messages: updatedMessages };
+      });
+    }, 50);
+  }, []);
 
   const sendRequest = useCallback(async (isRegeneration: boolean = false, editedMessageId: string | null = null, userMessage: string = '') => {
     try {
       setIsLoading(true);
       setError(null);
-  
+
       let messageToSend = userMessage || inputValue;
       let updatedMessages = [...chat.messages];
-  
+
       console.log('sendRequest called with:', { isRegeneration, editedMessageId, userMessage });
       console.log('Initial messages:', updatedMessages);
-  
+
       if (isRegeneration) {
         console.log('Handling regeneration');
       } else if (editedMessageId) {
@@ -234,64 +285,84 @@ const PneumaContent: React.FC = () => {
           content: messageToSend,
           status: 'entering'
         };
+        addMessage(newUserMessage);
         updatedMessages = [...updatedMessages, newUserMessage];
       }
-  
-      setChat(prevChat => ({
-        ...prevChat,
-        messages: updatedMessages
-      }));
-  
+
       console.log('Messages to be sent:', updatedMessages);
-  
+
+      const usePreDefinedPrompt = updatedMessages.length <= 3;
+
       const apiRequest: ApiRequest = {
+        chatId,
         chatState: {
           messages: updatedMessages,
-          systemPrompt: chat.systemPrompt
+          systemPrompt: usePreDefinedPrompt ? PREDEFINED_SYSTEM_PROMPT : chat.systemPrompt
         },
         userInput: messageToSend,
         userName: userName,
         isRegeneration,
         editedMessageId,
         userSettings,
+        usePreDefinedPrompt
       };
-  
+
       console.log('API request:', apiRequest);
       console.log('Sending request to:', API_URL);
-  
+
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(apiRequest),
       });
-  
+
       console.log('Response status:', response.status);
       console.log('Response headers:', JSON.stringify(Object.fromEntries(response.headers.entries())));
-  
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Error response body:', errorText);
         throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
-  
+
       const data = await response.json();
       console.log("Received response data:", JSON.stringify(data, null, 2));
-  
+
       if (data.requestId) {
-        await pollQueuePosition(data.requestId);
+        const pollResult = await pollQueuePosition(data.requestId);
+        console.log("Poll result:", JSON.stringify(pollResult, null, 2));
+        
+        if (pollResult.result && Array.isArray(pollResult.result.messages) && pollResult.result.messages.length > 0) {
+          const lastMessage = pollResult.result.messages[pollResult.result.messages.length - 1];
+          if (lastMessage && typeof lastMessage.content === 'string') {
+            const newAssistantMessage: Message = {
+              id: uuidv4(),
+              role: 'assistant',
+              content: lastMessage.content,
+              status: 'entering'
+            };
+            addMessage(newAssistantMessage);
+            setGeneratedSystemPrompt(pollResult.result.systemPrompt || '');
+          } else {
+            console.error('Unexpected message format:', lastMessage);
+            throw new Error('Received an invalid message format from the server');
+          }
+        } else {
+          console.error('Unexpected data format:', pollResult);
+          throw new Error('Received an unexpected data format from the server');
+        }
       } else {
         throw new Error('Failed to get a request ID');
       }
-  
+
       if (isRegeneration && !error) {
         setRegenerationAttempts(0);
       }
-  
-      // Reset input field after successful request
+
       if (!isRegeneration && !editedMessageId) {
         setInputValue('');
       }
-  
+
     } catch (error) {
       console.error('Error in sendRequest:', error);
       setError(error instanceof Error ? error.message : 'An unexpected error occurred');
@@ -303,23 +374,8 @@ const PneumaContent: React.FC = () => {
       setQueuePosition(null);
       setIsProcessing(false);
     }
-  }, [
-    chat.messages,
-    chat.systemPrompt,
-    inputValue,
-    editedContent,
-    userName,
-    userSettings,
-    pollQueuePosition,
-    setChat,
-    setError,
-    setIsLoading,
-    setQueuePosition,
-    setIsProcessing,
-    setRegenerationAttempts,
-    setInputValue
-  ]);
-  
+  }, [chatId, chat.messages, chat.systemPrompt, inputValue, editedContent, userName, userSettings, pollQueuePosition, error, addMessage]);
+
   const debouncedSendRequest = useCallback(
     debounce((isRegeneration: boolean, editedMessageId: string | null, message: string) => {
       sendRequest(isRegeneration, editedMessageId, message);
@@ -332,28 +388,6 @@ const PneumaContent: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const savedChat = localStorage.getItem('currentChat');
-    if (savedChat) {
-      setChat(JSON.parse(savedChat));
-    }
-    const savedSettings = localStorage.getItem('userSettings');
-    if (savedSettings) {
-      const parsedSettings = JSON.parse(savedSettings);
-      setUserName(parsedSettings.userName);
-      setUserSettings(parsedSettings.userSettings);
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('currentChat', JSON.stringify(chat));
-  }, [chat]);
-
-  useEffect(() => {
-    const settingsToSave = { userName, userSettings };
-    localStorage.setItem('userSettings', JSON.stringify(settingsToSave));
-  }, [userName, userSettings]);
-
-  useEffect(() => {
     if (chatWindowRef.current) {
       chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
     }
@@ -363,7 +397,7 @@ const PneumaContent: React.FC = () => {
     textareaRef.current?.focus();
   }, [isLoading]);
 
-  const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+  const handleTextAreaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setInputValue(e.target.value);
     adjustTextareaHeight(e.target);
   };
@@ -405,7 +439,8 @@ const PneumaContent: React.FC = () => {
 
   const deleteLastTurn = useCallback(() => {
     console.log('Delete Last Turn called');
-    console.log('Current messages:', chat.messages);
+  
+    if (animationPhase !== 'idle') return;
   
     setChat(prevChat => {
       const messages = [...prevChat.messages];
@@ -420,66 +455,107 @@ const PneumaContent: React.FC = () => {
         lastUserIndex--;
       }
   
-      console.log('Last bot response index:', lastBotIndex);
-      console.log('Last user message index:', lastUserIndex);
-  
       if (lastBotIndex >= 0 && lastUserIndex >= 0) {
-        messages[lastUserIndex].status = 'exiting';
-        messages[lastBotIndex].status = 'exiting';
+        const toRemove = [messages[lastUserIndex].id, messages[lastBotIndex].id];
+        setMessagesToRemove(toRemove);
   
-        console.log('Marking for deletion:', messages[lastUserIndex], messages[lastBotIndex]);
+        // Mark messages for removal
+        messages[lastUserIndex] = { ...messages[lastUserIndex], status: 'exiting' as MessageStatus };
+        messages[lastBotIndex] = { ...messages[lastBotIndex], status: 'exiting' as MessageStatus };
   
-        for (let i = 0; i < lastUserIndex; i++) {
-          messages[i].status = 'sliding';
-        }
+        setAnimationPhase('fading');
   
-        console.log('Updated messages:', messages);
         return { ...prevChat, messages };
       }
   
-      console.log('No suitable turn found to delete');
       return prevChat;
     });
-  
-    setTimeout(() => {
-      setChat(prevChat => {
-        const updatedMessages = prevChat.messages
-          .filter(m => m.status !== 'exiting')
-          .map(m => ({ ...m, status: 'active' as const }));
-        console.log('Messages after removal:', updatedMessages);
-        return { ...prevChat, messages: updatedMessages };
-      });
-    }, 300); // Duration of exit animation
-  }, [chat.messages]);
-  
+  }, [animationPhase]);
+
+  useEffect(() => {
+    if (animationPhase === 'fading') {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      
+      timeoutRef.current = setTimeout(() => {
+        setChat(prevChat => {
+          const updatedMessages = prevChat.messages.filter(m => !messagesToRemove.includes(m.id));
+          const removedHeight = calculateRemovedHeight();
+          chatWindowRef.current?.style.setProperty('--slide-distance', `${removedHeight}px`);
+          return {
+            ...prevChat,
+            messages: updatedMessages.map(m => ({ ...m, status: 'sliding' as MessageStatus }))
+          };
+        });
+        setAnimationPhase('sliding');
+      }, 300); // Duration of the fade-out animation
+    }
+
+    if (animationPhase === 'sliding') {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      
+      timeoutRef.current = setTimeout(() => {
+        setChat(prevChat => ({
+          ...prevChat,
+          messages: prevChat.messages.map(m => ({ ...m, status: 'active' as MessageStatus }))
+        }));
+        setAnimationPhase('idle');
+        chatWindowRef.current?.style.removeProperty('--slide-distance');
+      }, 500); // Duration of the slide-down animation
+    }
+
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [animationPhase, messagesToRemove]);
+
+  const calculateRemovedHeight = useCallback(() => {
+    if (!chatWindowRef.current) return 0;
+    
+    const messagesToRemoveElements = messagesToRemove.map(id => 
+      chatWindowRef.current!.querySelector(`[data-message-id="${id}"]`) as HTMLElement
+    );
+
+    return messagesToRemoveElements.reduce((total, el) => total + (el?.offsetHeight || 0), 0);
+  }, [messagesToRemove]);
+
   const regenerateResponse = useCallback(async (event?: ReactMouseEvent<HTMLButtonElement>) => {
     if (event) {
       event.preventDefault();
     }
     if (chat.messages.length === 0) return;
-  
+
     if (regenerationAttempts >= MAX_REGENERATION_ATTEMPTS) {
       setError("Maximum regeneration attempts reached. Please try again later.");
       return;
     }
-  
-    // Find the last user message
+
     const lastUserIndex = chat.messages.findLastIndex(m => m.role === 'user');
+    const lastAssistantIndex = chat.messages.findLastIndex(m => m.role === 'assistant');
     
-    if (lastUserIndex !== -1) {
-      // Remove all messages after the last user message (including the last bot response)
-      setChat(prevChat => {
-        const updatedMessages = prevChat.messages.slice(0, lastUserIndex + 1);
-        return { ...prevChat, messages: updatedMessages };
-      });
-  
-      // Get the last user message
+    if (lastUserIndex !== -1 && lastAssistantIndex > lastUserIndex) {
+      // Start the fade-out animation
+      setChat(prevChat => ({
+        ...prevChat,
+        messages: prevChat.messages.map((m, index) => 
+          index === lastAssistantIndex 
+            ? { ...m, status: 'exiting' as MessageStatus } 
+            : m
+        )
+      }));
+
+      // Wait for the fade-out animation to complete
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Remove the last assistant message
+      setChat(prevChat => ({
+        ...prevChat,
+        messages: prevChat.messages.filter((_, index) => index !== lastAssistantIndex)
+      }));
+
       const lastUserMessage = chat.messages[lastUserIndex];
-  
-      // Increment regeneration attempts
+
       setRegenerationAttempts(prev => prev + 1);
-  
-      // Call sendRequest with the last user message
+
       await sendRequest(true, null, lastUserMessage.content);
     } else {
       setError("No user message found to regenerate response.");
@@ -509,8 +585,24 @@ const PneumaContent: React.FC = () => {
   }, []);
 
   const updateUserSetting = useCallback((key: keyof UserSettings, value: number) => {
-    setUserSettings((prev: UserSettings) => ({ ...prev, [key]: Number(value) }));
+    setUserSettings((prev: UserSettings) => {
+      const updatedValue = Number(value);
+      if (isNaN(updatedValue)) return prev;
+      
+      const { min, max } = getSliderProps(key);
+      const clampedValue = Math.min(Math.max(updatedValue, min), max);
+      
+      return { ...prev, [key]: clampedValue };
+    });
   }, []);
+
+  const handleSliderChange = useCallback((e: ChangeEvent<HTMLInputElement>, key: keyof UserSettings) => {
+    updateUserSetting(key, Number(e.target.value));
+  }, [updateUserSetting]);
+
+  const handleSettingInputChange = useCallback((e: ChangeEvent<HTMLInputElement>, key: keyof UserSettings) => {
+    updateUserSetting(key, Number(e.target.value));
+  }, [updateUserSetting]);
 
   const getSliderProps = useCallback((key: keyof UserSettings) => {
     switch (key) {
@@ -535,7 +627,7 @@ const PneumaContent: React.FC = () => {
     if (key === 'max_tokens' || key === 'top_k') {
       return value.toFixed(0);
     }
-    return value.toFixed(2);
+    return value.toFixed(3);
   }, []);
 
   const handleCopy = useCallback((messageId: string, content: string) => {
@@ -594,34 +686,28 @@ const PneumaContent: React.FC = () => {
             </div>
   
             <div className={styles.chatWindow} ref={chatWindowRef}>
-              <TransitionGroup>
-                {chat.messages.map((message) => (
-                  <CSSTransition
-                    key={message.id}
-                    timeout={300}
-                    classNames={{
-                      enter: styles.messageEnter,
-                      enterActive: styles.messageEnterActive,
-                      exit: styles.messageExit,
-                      exitActive: styles.messageExitActive,
-                    }}
-                  >
-                    <div className={`${styles.messageWrapper} ${message.status === 'sliding' ? styles.messageSliding : ''}`}>
-                      <MessageItem
-                        message={message}
-                        userName={userName}
-                        editingMessageId={editingMessageId}
-                        handleEdit={handleEdit}
-                        handleCopy={handleCopy}
-                        copiedMessageId={copiedMessageId}
-                        editedContent={editedContent}
-                        handleSaveEdit={handleSaveEdit}
-                        handleCancelEdit={handleCancelEdit}
-                      />
-                    </div>
-                  </CSSTransition>
-                ))}
-              </TransitionGroup>
+              {chat.messages.map((message) => (
+                <div 
+                  key={message.id}
+                  className={`${styles.messageWrapper} ${
+                    message.status === 'sliding' && animationPhase === 'sliding' ? styles.messageSlidingDown : ''
+                  }`}
+                  data-status={message.status}
+                  data-message-id={message.id}
+                >
+                  <MessageItem
+                    message={message}
+                    userName={userName}
+                    editingMessageId={editingMessageId}
+                    handleEdit={handleEdit}
+                    handleCopy={handleCopy}
+                    copiedMessageId={copiedMessageId}
+                    editedContent={editedContent}
+                    handleSaveEdit={handleSaveEdit}
+                    handleCancelEdit={handleCancelEdit}
+                  />
+                </div>
+              ))}
             </div>
 
             <div className={styles.thinkingIndicatorContainer}>
@@ -637,13 +723,13 @@ const PneumaContent: React.FC = () => {
               </div>
             )}
   
-            <form onSubmit={handleSubmit} className={styles.inputForm}>
+          <form onSubmit={handleSubmit} className={styles.inputForm}>
               <div className={styles.inputWrapper}>
                 <textarea
                   ref={textareaRef}
                   placeholder={`${userName}, type your message...`}
                   value={inputValue}
-                  onChange={handleInputChange}
+                  onChange={handleTextAreaChange}
                   onKeyDown={handleKeyDown}
                   className={styles.inputField}
                   rows={1}
@@ -658,7 +744,7 @@ const PneumaContent: React.FC = () => {
               <button 
                 onClick={deleteLastTurn} 
                 className={styles.secondaryButton}
-                disabled={chat.messages.length < 2 || isLoading}
+                disabled={chat.messages.length < 2 || isLoading || animationPhase !== 'idle'}
               >
                 <FiTrash2 /> Delete Last Turn
               </button>
@@ -739,12 +825,18 @@ const PneumaContent: React.FC = () => {
                     max={max}
                     step={step}
                     value={value}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      updateUserSetting(key as keyof UserSettings, parseFloat(e.target.value))
-                    }
+                    onChange={(e) => handleSliderChange(e, key as keyof UserSettings)}
                     className={styles.slider}
                   />
-                  <span className={styles.sliderValue}>{formatSettingValue(key, value)}</span>
+                  <input
+                    type="number"
+                    value={formatSettingValue(key, value)}
+                    onChange={(e) => handleSettingInputChange(e, key as keyof UserSettings)}
+                    className={styles.sliderValue}
+                    step={step}
+                    min={min}
+                    max={max}
+                  />
                 </div>
               </div>
             );

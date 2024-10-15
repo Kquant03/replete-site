@@ -10,13 +10,13 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     console.log('[POST] Request body:', JSON.stringify(body, null, 2));
-    const { chatState, userInput, userName, isRegeneration = false, editedMessageId = null, userSettings } = body;
+    const { chatState, userInput, userName, isRegeneration = false, editedMessageId = null, userSettings, usePreDefinedPrompt } = body;
 
-    if (!chatState || typeof userInput !== 'string' || typeof userName !== 'string' || typeof isRegeneration !== 'boolean' || !userSettings) {
+    if (!chatState || typeof userInput !== 'string' || typeof userName !== 'string' || typeof isRegeneration !== 'boolean' || !userSettings || typeof usePreDefinedPrompt !== 'boolean') {
       throw new Error('Invalid request body');
     }
 
-    const { id, position } = await globalQueue.enqueue(chatState, userInput, userName, isRegeneration, editedMessageId, userSettings);
+    const { id, position } = await globalQueue.enqueue(chatState, userInput, userName, isRegeneration, editedMessageId, userSettings, usePreDefinedPrompt);
 
     console.log(`[POST] Enqueued request ${id} at position ${position}`);
     return NextResponse.json({ 

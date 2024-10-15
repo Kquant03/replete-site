@@ -1,0 +1,66 @@
+.codeBlockWrapper {
+  position: relative;
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background-color: #1e1e1e;
+}
+
+.codeBlockHeader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: rgba(55, 65, 81, 0.75);
+  z-index: 10;
+}
+
+.codeBlockLanguage {
+  font-size: 0.75rem;
+  font-family: monospace;
+  color: #d1d5db;
+}
+
+.codeBlockCopyBtn {
+  color: #9ca3af;
+  transition: color 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.codeBlockCopyBtn:hover {
+  color: #ffffff;
+}
+
+.codeBlockCopiedIndicator {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  font-size: 0.75rem;
+  color: #34d399;
+  background-color: rgba(17, 24, 39, 0.75);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.syntaxHighlighter {
+  margin-top: 2.5rem !important;
+  background-color: transparent !important;
+}
+
+.inlineCode {
+  background-color: rgba(55, 65, 81, 0.5);
+  color: #e5e7eb;
+  border-radius: 0.25rem;
+  font-family: monospace;
+  font-size: 0.875em;
+  padding: 0.2em 0.4em;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

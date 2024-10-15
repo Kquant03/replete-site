@@ -80,9 +80,9 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar = () => {} }) => {
   ];
 
   const socialLinks = [
-    { href: "/huggingface", src: "/huggingface-logo.png", alt: "HuggingFace" },
-    { href: "/github", icon: FaGithub },
-    { href: "/discord", src: "/discord-logo.png", alt: "Discord" }
+    { href: "https://huggingface.co/Replete-AI", src: "/huggingface-logo.png", alt: "HuggingFace" },
+    { href: "https://github.com/Replete-AI", icon: FaGithub },
+    { href: "https://discord.gg/awyCNx3nnw", src: "/discord-logo.png", alt: "Discord" }
   ];
 
   return (

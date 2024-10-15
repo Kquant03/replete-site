@@ -30,6 +30,7 @@ type QueueItem = {
   isRegeneration: boolean;
   editedMessageId: string | null;
   userSettings: UserSettings;
+  usePreDefinedPrompt: boolean;
   status: 'queued' | 'processing' | 'completed' | 'error';
   result?: ChatState | { error: string };
   timestamp: number;
@@ -45,11 +46,30 @@ export class Queue {
 
   constructor(private MAX_CONCURRENT_REQUESTS: number) {}
 
-  async enqueue(chatState: ChatState, userInput: string, userName: string, isRegeneration: boolean = false, editedMessageId: string | null = null, userSettings: UserSettings): Promise<{ id: string; position: number }> {
+  async enqueue(
+    chatState: ChatState, 
+    userInput: string, 
+    userName: string, 
+    isRegeneration: boolean = false, 
+    editedMessageId: string | null = null, 
+    userSettings: UserSettings,
+    usePreDefinedPrompt: boolean
+  ): Promise<{ id: string; position: number }> {
     return await this.mutex.runExclusive(() => {
       const id = generateUniqueId();
       this.totalRequestsReceived++;
-      const item: QueueItem = { id, chatState, userInput, userName, isRegeneration, editedMessageId, userSettings, status: 'queued', timestamp: Date.now() };
+      const item: QueueItem = { 
+        id, 
+        chatState, 
+        userInput, 
+        userName, 
+        isRegeneration, 
+        editedMessageId, 
+        userSettings, 
+        usePreDefinedPrompt,
+        status: 'queued', 
+        timestamp: Date.now() 
+      };
       this.queue.push(item);
       const position = this.queue.length;
       console.log(`[${new Date().toISOString()}] Enqueued request ${id} at position ${position}. Total requests: ${this.totalRequestsReceived}`);
@@ -78,7 +98,15 @@ export class Queue {
       const item = this.processing.get(id);
       if (!item) throw new Error(`Item ${id} not found in processing queue`);
 
-      const updatedChatState = await processChatRequest(item.chatState, item.userInput, item.userName, item.isRegeneration, item.editedMessageId, item.userSettings);
+      const updatedChatState = await processChatRequest(
+        item.chatState, 
+        item.userInput, 
+        item.userName, 
+        item.isRegeneration, 
+        item.editedMessageId, 
+        item.userSettings,
+        item.usePreDefinedPrompt
+      );
       item.result = updatedChatState;
       item.status = 'completed';
       await this.completeRequest(id);

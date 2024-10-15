@@ -259,7 +259,7 @@ const Home: React.FC = () => {
                       <span className={styles.heading}>Replete AI</span>
                     </div>
                     <div className={styles.socialLinks}>
-                      <Link href="/huggingface">
+                      <Link href="https://huggingface.co/">
                         <Image
                           src="/huggingface-logo.png"
                           alt="HuggingFace"
@@ -267,10 +267,10 @@ const Home: React.FC = () => {
                           height={24}
                         />
                       </Link>
-                      <Link href="/github">
+                      <Link href="https://github.com/Replete-AI">
                         <FaGithub size={24} />
                       </Link>
-                      <Link href="/discord">
+                      <Link href="https://discord.gg/awyCNx3nnw">
                         <Image
                           src="/discord-logo.png"
                           alt="Discord"

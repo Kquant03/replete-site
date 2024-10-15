@@ -76,15 +76,34 @@
   position: relative;
   scroll-behavior: smooth;
   flex-grow: 1;
-  transition: height 300ms ease-out;
+  transition: height 0.3s ease-out;
 }
 
 .messageWrapper {
-  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: max-height 0.3s ease-out, opacity 0.3s ease-out, transform 0.3s ease-out;
+  max-height: 1000px; /* Adjust based on your maximum message height */
+  opacity: 1;
+  transform: translateY(0);
 }
 
-.messageSliding {
-  transform: translateY(-100%);
+.messageWrapper[data-status="entering"] {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.messageWrapper[data-status="exiting"] {
+  max-height: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease-out, max-height 0.3s ease-out 0.3s;
+}
+
+.messageWrapper[data-status="sliding"] {
+  transition: transform 0.5s linear;
+}
+
+.messageSlidingDown {
+  transform: translateY(var(--slide-distance));
 }
 
 .message {
@@ -96,7 +115,6 @@
   word-wrap: break-word;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   white-space: pre-wrap;
-  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .message[data-role="user"] {
@@ -113,24 +131,48 @@
   border-bottom-left-radius: 5px;
 }
 
+.message[data-status="fading"] {
+  opacity: 0;
+  max-height: 0;
+  margin: 0;
+  padding: 0;
+  transition: opacity 0.3s ease-out, max-height 0.3s ease-out 0.3s, margin 0.3s ease-out 0.3s, padding 0.3s ease-out 0.3s;
+}
+
+.message[data-status="sliding"] {
+  transition: transform 0.5s linear;
+}
+
+.message[data-status="active"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .messageWrapper,
+  .message {
+    transition: none;
+  }
+}
+
 .messageEnter {
   opacity: 0;
-  transform: translateY(20px) scale(0.9);
+  transform: translateY(20px);
 }
 
 .messageEnterActive {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: translateY(0);
 }
 
 .messageExit {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: translateY(0);
 }
 
 .messageExitActive {
   opacity: 0;
-  transform: translateY(-20px) scale(0.9);
+  transform: translateY(-20px);
 }
 
 .messageSender {
@@ -418,6 +460,7 @@
   padding-right: 1rem;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  padding-top: 1rem; /* Add some top padding to the content */
 }
 
 .settingsPanelContent::-webkit-scrollbar {
@@ -431,9 +474,9 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
-  margin-top: 2rem;
-  padding-bottom: 1.5rem;
+  padding: 1rem 0; /* Add vertical padding */
   border-bottom: 1px solid rgba(76, 201, 240, 0.3);
+  position: relative;
 }
 
 .settingsPanel h2 {
@@ -454,11 +497,14 @@
   cursor: pointer;
   transition: transform 0.3s ease;
   padding: 0.5rem;
-  margin: -0.5rem;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .closeSettings:hover {
-  transform: scale(1.1);
+  transform: translateY(-50%) scale(1.1);
 }
 
 .settingGroup {
@@ -513,7 +559,7 @@
 }
 
 .sliderContainer {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .sliderGroup {
@@ -526,7 +572,7 @@
   margin-right: 1rem;
   -webkit-appearance: none;
   appearance: none;
-  width: 100%;
+  width: calc(100% - 80px); /* Adjust width to make room for input */
   height: 6px;
   background: linear-gradient(to right, rgba(127, 90, 240, 0.3), rgba(76, 201, 240, 0.3));
   outline: none;
@@ -560,10 +606,34 @@
 }
 
 .sliderValue {
-  min-width: 40px;
+  width: 80px; /* Fixed width for the input */
   text-align: right;
   font-family: 'Orbitron', sans-serif;
   color: #4cc9f0;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(76, 201, 240, 0.3);
+  border-radius: 4px;
+  padding: 0.25rem;
+  font-size: 0.9rem;
+  -moz-appearance: textfield; /* Firefox */
+}
+
+.sliderValue:focus {
+  outline: none;
+  border-color: rgba(127, 90, 240, 0.6);
+  box-shadow: 0 0 15px rgba(127, 90, 240, 0.3);
+}
+
+/* Hide spinner for Chrome, Safari, Edge, Opera */
+.sliderValue::-webkit-outer-spin-button,
+.sliderValue::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Hide spinner for Firefox */
+.sliderValue[type=number] {
+  -moz-appearance: textfield;
 }
 
 .errorMessage {
