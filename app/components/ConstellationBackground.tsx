@@ -25,8 +25,6 @@ const ConstellationBackground: React.FC = () => {
     let cursorX = -1000;
     let cursorY = -1000;
     let isTouching = false;
-    let animationFrameId: number;
-    let lastTime = 0;
 
     const particleColors = [
       'rgb(0, 191, 255)',   // Deep Sky Blue
@@ -233,41 +231,75 @@ const ConstellationBackground: React.FC = () => {
       }
     }
 
-    // Initialize canvas size and particles
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    initParticles(canvas.width, canvas.height);
+    let lastTime = 0;
+    const fixedTimeStep = 1000 / 60; // 60 FPS
+    let accumulatedTime = 0;
 
-    function animate(currentTime: number) {
-      const deltaTime = currentTime - lastTime;
-      lastTime = currentTime;
-
-      if (!canvas || !ctx) return;
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+    function updateParticles(deltaTime: number) {
+      if (!canvas) return;  // Early return if canvas is null
+    
       let activeParticles = 0;
-
+    
       for (let i = 0; i < particles.length; i++) {
         if (particles[i].active) {
           activeParticles++;
           particles[i].update(deltaTime, canvas.width, canvas.height);
-          particles[i].draw(ctx);
-
+    
           // Apply gravity effect
           const dx = cursorX - particles[i].x;
           const dy = cursorY - particles[i].y;
           const distance = Math.sqrt(dx * dx + dy * dy);
           const minDistance = 80;
           const maxForce = 0.03;
-
+    
           if (distance < minDistance) {
             const force = (maxForce * (minDistance - distance)) / minDistance;
             const forceX = force * (dx / distance);
             const forceY = force * (dy / distance);
-
+    
             particles[i].applyForce(forceX, forceY);
           }
+    
+          for (let j = i + 1; j < particles.length; j++) {
+            if (particles[j].active) {
+              const dx = particles[i].x - particles[j].x;
+              const dy = particles[i].y - particles[j].y;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+    
+              if (distance < maxDistance) {
+                const force = (particles[i].mass * particles[j].mass) / (distance * distance);
+                const forceX = force * (dx / distance) * 0.02;
+                const forceY = force * (dy / distance) * 0.02;
+    
+                particles[i].velocityX -= forceX / particles[i].mass;
+                particles[i].velocityY -= forceY / particles[i].mass;
+                particles[j].velocityX += forceX / particles[j].mass;
+                particles[j].velocityY += forceY / particles[j].mass;
+              }
+    
+              particles[i].checkCollision(particles[j]);
+            }
+          }
+        }
+      }
+
+      // Use activeParticles count to adjust particle creation rate
+      if (Math.random() < 0.05 * (particleCount / Math.max(activeParticles, 1))) {
+        const inactiveParticles = particles.filter(p => !p.active);
+        if (inactiveParticles.length > 0) {
+          const particleToReset = inactiveParticles[Math.floor(Math.random() * inactiveParticles.length)];
+          particleToReset.reset(canvas.width, canvas.height);
+        }
+      }
+    }
+
+    function drawParticles() {
+      if (!ctx || !canvas) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < particles.length; i++) {
+        if (particles[i].active) {
+          particles[i].draw(ctx);
 
           for (let j = i + 1; j < particles.length; j++) {
             if (particles[j].active) {
@@ -284,34 +316,65 @@ const ConstellationBackground: React.FC = () => {
                 ctx.strokeStyle = lineColor.replace('0.2)', `${lineOpacity})`);
                 ctx.lineWidth = 0.3;
                 ctx.stroke();
-
-                const force = (particles[i].mass * particles[j].mass) / (distance * distance);
-                const forceX = force * (dx / distance) * 0.02;
-                const forceY = force * (dy / distance) * 0.02;
-
-                particles[i].velocityX -= forceX / particles[i].mass;
-                particles[i].velocityY -= forceY / particles[i].mass;
-                particles[j].velocityX += forceX / particles[j].mass;
-                particles[j].velocityY += forceY / particles[j].mass;
               }
-
-              particles[i].checkCollision(particles[j]);
             }
           }
         }
       }
+    }
 
-      // Use activeParticles count to adjust particle creation rate
-      if (Math.random() < 0.05 * (particleCount / Math.max(activeParticles, 1))) {
-        const inactiveParticles = particles.filter(p => !p.active);
-        if (inactiveParticles.length > 0) {
-          const particleToReset = inactiveParticles[Math.floor(Math.random() * inactiveParticles.length)];
-          particleToReset.reset(canvas.width, canvas.height);
-        }
+    let animationFrameId: number;
+
+    function animate(currentTime: number) {
+      const deltaTime = currentTime - lastTime;
+      lastTime = currentTime;
+      accumulatedTime += deltaTime;
+
+      while (accumulatedTime >= fixedTimeStep) {
+        updateParticles(fixedTimeStep);
+        accumulatedTime -= fixedTimeStep;
       }
+
+      drawParticles();
 
       animationFrameId = requestAnimationFrame(animate);
     }
+
+    // Initialize canvas size and particles
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    initParticles(canvas.width, canvas.height);
+
+    // Handle visibility change
+    let hidden: string, visibilityChange: string;
+    if (typeof document.hidden !== "undefined") {
+      hidden = "hidden";
+      visibilityChange = "visibilitychange";
+    } else if (typeof (document as any).msHidden !== "undefined") {
+      hidden = "msHidden";
+      visibilityChange = "msvisibilitychange";
+    } else if (typeof (document as any).webkitHidden !== "undefined") {
+      hidden = "webkitHidden";
+      visibilityChange = "webkitvisibilitychange";
+    } else {
+      // Fallback if Page Visibility API is not supported
+      hidden = "hidden";
+      visibilityChange = "visibilitychange";
+    }
+
+    function handleVisibilityChange() {
+      if (document[hidden as keyof Document]) {
+        // Tab is hidden, pause the animation
+        cancelAnimationFrame(animationFrameId);
+      } else {
+        // Tab is visible, resume the animation
+        lastTime = performance.now();
+        accumulatedTime = 0;
+        animationFrameId = requestAnimationFrame(animate);
+      }
+    }
+
+    document.addEventListener(visibilityChange, handleVisibilityChange, false);
 
     // Start the animation
     animationFrameId = requestAnimationFrame(animate);
@@ -327,10 +390,13 @@ const ConstellationBackground: React.FC = () => {
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('touchstart', handleTouchStart);
-      canvas.removeEventListener('touchmove', handleTouchMove);
-      canvas.removeEventListener('touchend', handleTouchEnd);
+      if (canvas) {
+        canvas.removeEventListener('touchstart', handleTouchStart);
+        canvas.removeEventListener('touchmove', handleTouchMove);
+        canvas.removeEventListener('touchend', handleTouchEnd);
+      }
       window.removeEventListener('resize', handleResize);
+      document.removeEventListener(visibilityChange, handleVisibilityChange);
       cancelAnimationFrame(animationFrameId);
     };
   }, [particleCount]);
