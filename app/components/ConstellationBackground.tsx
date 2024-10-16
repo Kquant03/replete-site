@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import styles from '../styles/ConstellationBackground.module.css';
 
 const ConstellationBackground: React.FC = () => {
@@ -7,7 +7,38 @@ const ConstellationBackground: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [opacity, setOpacity] = useState(1);
   const particleCount = useMemo(() => window.innerWidth < 768 ? 60 : 120, []);
-  const [key, setKey] = useState(0); // Add this line
+  const [key, setKey] = useState(0);
+
+  const particleColors = useMemo(() => [
+    'rgb(0, 191, 255)',   // Deep Sky Blue
+    'rgb(30, 144, 255)',  // Dodger Blue
+    'rgb(0, 123, 255)',   // Blue
+    'rgb(65, 105, 225)',  // Royal Blue
+    'rgb(100, 149, 237)', // Cornflower Blue
+    'rgb(138, 43, 226)',  // Blue Violet
+    'rgb(147, 112, 219)', // Medium Purple
+    'rgb(153, 50, 204)',  // Dark Orchid
+    'rgb(186, 85, 211)',  // Medium Orchid
+    'rgb(128, 0, 128)',   // Purple
+  ], []);
+
+  const lineColor = useMemo(() => 'rgba(147, 112, 219, 0.2)', []);
+
+  const restartAnimation = useCallback(() => {
+    setOpacity(0);
+    setTimeout(() => {
+      setKey(prevKey => prevKey + 1);
+      setOpacity(1);
+    }, 300);
+  }, []);
+
+  useEffect(() => {
+    const resetInterval = setInterval(() => {
+      restartAnimation();
+    }, 5 * 60 * 1000); // Restart every 5 minutes
+
+    return () => clearInterval(resetInterval);
+  }, [restartAnimation]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -27,21 +58,6 @@ const ConstellationBackground: React.FC = () => {
     let cursorX = window.innerWidth / 2;
     let cursorY = window.innerHeight / 2;
     let isTouching = false;
-
-    const particleColors = [
-      'rgb(0, 191, 255)',   // Deep Sky Blue
-      'rgb(30, 144, 255)',  // Dodger Blue
-      'rgb(0, 123, 255)',   // Blue
-      'rgb(65, 105, 225)',  // Royal Blue
-      'rgb(100, 149, 237)', // Cornflower Blue
-      'rgb(138, 43, 226)',  // Blue Violet
-      'rgb(147, 112, 219)', // Medium Purple
-      'rgb(153, 50, 204)',  // Dark Orchid
-      'rgb(186, 85, 211)',  // Medium Orchid
-      'rgb(128, 0, 128)',   // Purple
-    ];
-
-    const lineColor = 'rgba(147, 112, 219, 0.2)';
 
     class Particle {
       x: number;
@@ -348,36 +364,7 @@ const ConstellationBackground: React.FC = () => {
         cancelAnimationFrame(animationFrameId);
         setOpacity(0);
       } else {
-        const currentCanvas = canvasRef.current;
-        if (currentCanvas) {
-          initParticles(currentCanvas.width, currentCanvas.height);
-          lastTime = performance.now();
-          accumulatedTime = 0;
-          setOpacity(0);
-          setTimeout(() => {
-            setOpacity(1);
-            animationFrameId = requestAnimationFrame(animate);
-          }, 0);
-        }
-      }
-    }
-
-    function restartAnimation() {
-      cancelAnimationFrame(animationFrameId);
-      if (canvasRef.current) {
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-        }
-        initParticles(canvas.width, canvas.height);
-        lastTime = performance.now();
-        accumulatedTime = 0;
-        setOpacity(0);
-        setTimeout(() => {
-          setOpacity(1);
-          animationFrameId = requestAnimationFrame(animate);
-        }, 0);
+        restartAnimation();
       }
     }
 
@@ -403,31 +390,30 @@ const ConstellationBackground: React.FC = () => {
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('mousemove', handleMouseMove);
-      if (canvasRef.current) {
-        canvasRef.current.removeEventListener('touchstart', handleTouchStart);
-        canvasRef.current.removeEventListener('touchmove', handleTouchMove);
-        canvasRef.current.removeEventListener('touchend', handleTouchEnd);
-      }
+      canvas.removeEventListener('touchstart', handleTouchStart);
+      canvas.removeEventListener('touchmove', handleTouchMove);
+      canvas.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('resize', handleResize);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      // Clear any remaining timeouts or intervals if you have any
     };
-  }, [particleCount]);
+  }, [particleCount, key, opacity, restartAnimation, lineColor, particleColors]);
 
   return (
-    <motion.div
-      className={styles.backgroundContainer}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: isLoaded ? 1 : 0 }}
-      transition={{ duration: 1 }}
-    >
-      <motion.canvas
-        ref={canvasRef}
-        className={styles.constellationCanvas}
-        animate={{ opacity: opacity }}
-        transition={{ duration: 1 }}
-      />
-    </motion.div>
+    <AnimatePresence>
+      <motion.div
+        key={key}
+        className={styles.backgroundContainer}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isLoaded ? 1 : 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <canvas
+          ref={canvasRef}
+          className={styles.constellationCanvas}
+        />
+      </motion.div>
+    </AnimatePresence>
   );
 };
 

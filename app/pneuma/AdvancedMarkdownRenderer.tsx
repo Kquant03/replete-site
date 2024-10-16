@@ -117,7 +117,6 @@ interface AdvancedMarkdownRendererProps {
 }
 
 const AdvancedMarkdownRenderer: React.FC<AdvancedMarkdownRendererProps> = ({ content, className }) => {
-  // Preprocess the content to differentiate inline code and code blocks
   const preprocessContent = (rawContent: string) => {
     const lines = rawContent.split('\n');
     let inCodeBlock = false;
@@ -127,7 +126,6 @@ const AdvancedMarkdownRenderer: React.FC<AdvancedMarkdownRendererProps> = ({ con
         return line;
       }
       if (!inCodeBlock) {
-        // Replace inline code with a custom marker
         return line.replace(/`([^`\n]+)`/g, '§§INLINE_CODE_START§§$1§§INLINE_CODE_END§§');
       }
       return line;
@@ -138,7 +136,7 @@ const AdvancedMarkdownRenderer: React.FC<AdvancedMarkdownRendererProps> = ({ con
   const processedContent = preprocessContent(content);
 
   return (
-    <div className={`text-gray-200 ${className || ''}`}>
+    <div className={`${styles.markdownContent} ${className || ''}`}>
       <ReactMarkdown
         components={{
           code({ className, children, ...props }) {
@@ -146,7 +144,6 @@ const AdvancedMarkdownRenderer: React.FC<AdvancedMarkdownRendererProps> = ({ con
             const lang = match ? match[1] : '';
             const value = String(children).replace(/\n$/, '');
             
-            // Check for our custom inline code marker
             if (value.startsWith('§§INLINE_CODE_START§§') && value.endsWith('§§INLINE_CODE_END§§')) {
               const inlineCode = value.replace('§§INLINE_CODE_START§§', '').replace('§§INLINE_CODE_END§§', '');
               return (
@@ -160,10 +157,9 @@ const AdvancedMarkdownRenderer: React.FC<AdvancedMarkdownRendererProps> = ({ con
           },
           p: ({ children }) => {
             if (typeof children === 'string') {
-              // Replace our custom markers with actual inline code elements
               const parts = children.split(/(§§INLINE_CODE_START§§.*?§§INLINE_CODE_END§§)/);
               return (
-                <p className="my-2 text-sm leading-relaxed">
+                <p className={styles.paragraph}>
                   {parts.map((part, index) => {
                     if (part.startsWith('§§INLINE_CODE_START§§') && part.endsWith('§§INLINE_CODE_END§§')) {
                       const code = part.replace('§§INLINE_CODE_START§§', '').replace('§§INLINE_CODE_END§§', '');
@@ -178,59 +174,49 @@ const AdvancedMarkdownRenderer: React.FC<AdvancedMarkdownRendererProps> = ({ con
                 </p>
               );
             }
-            return <p className="my-2 text-sm leading-relaxed">{children}</p>;
+            return <p className={styles.paragraph}>{children}</p>;
           },
-          h1: ({ children }) => <h1 className="text-xl font-semibold mt-4 mb-2">{children}</h1>,
-          h2: ({ children }) => <h2 className="text-lg font-medium mt-3 mb-2">{children}</h2>,
-          h3: ({ children }) => <h3 className="text-base font-medium mt-3 mb-1">{children}</h3>,
-          h4: ({ children }) => <h4 className="text-sm font-medium mt-2 mb-1">{children}</h4>,
-          h5: ({ children }) => <h5 className="text-sm font-medium mt-2 mb-1">{children}</h5>,
-          h6: ({ children }) => <h6 className="text-xs font-medium mt-2 mb-1">{children}</h6>,
-          ul: ({ children }) => <ul className="list-disc pl-4 my-1 space-y-0.5 text-sm">{children}</ul>,
-          ol: ({ children }) => <ol className="list-decimal pl-4 my-1 space-y-0.5 text-sm">{children}</ol>,
-          li: ({ children }) => <li className="mb-0.5">{children}</li>,
+          h1: ({ children }) => <h1 className={styles.heading1}>{children}</h1>,
+          h2: ({ children }) => <h2 className={styles.heading2}>{children}</h2>,
+          h3: ({ children }) => <h3 className={styles.heading3}>{children}</h3>,
+          h4: ({ children }) => <h4 className={styles.heading4}>{children}</h4>,
+          h5: ({ children }) => <h5 className={styles.heading5}>{children}</h5>,
+          h6: ({ children }) => <h6 className={styles.heading6}>{children}</h6>,
+          ul: ({ children }) => <ul className={styles.list}>{children}</ul>,
+          ol: ({ children }) => <ol className={styles.list}>{children}</ol>,
+          li: ({ children }) => <li className={styles.listItem}>{children}</li>,
           blockquote: ({ children }) => (
-            <blockquote className="border-l-2 border-gray-400 pl-3 py-1 my-2 text-sm italic text-gray-300">
-              {children}
-            </blockquote>
+            <blockquote className={styles.blockquote}>{children}</blockquote>
           ),
           a: ({ href, children }) => (
-            <a href={href} className="text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
+            <a href={href} className={styles.link} target="_blank" rel="noopener noreferrer">
               {children}
             </a>
           ),
           img: ({ src, alt }) => (
-            <div className="my-2">
+            <div className={styles.imageWrapper}>
               <Image 
                 src={src || ''}
                 alt={alt || ''}
                 width={500}
                 height={300}
                 layout="responsive"
-                className="rounded-md"
+                className={styles.image}
               />
-              {alt && <p className="text-xs text-gray-400 mt-1">{alt}</p>}
+              {alt && <p className={styles.imageCaption}>{alt}</p>}
             </div>
           ),
           table: ({ children }) => (
-            <div className="overflow-x-auto my-2">
-              <table className="min-w-full divide-y divide-gray-600 text-sm border-collapse">
-                {children}
-              </table>
+            <div className={styles.tableContainer}>
+              <table className={styles.table}>{children}</table>
             </div>
           ),
-          thead: ({ children }) => <thead className="bg-gray-700">{children}</thead>,
-          th: ({ children }) => (
-            <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider border border-gray-600">
-              {children}
-            </th>
-          ),
-          td: ({ children }) => (
-            <td className="px-3 py-2 text-sm text-gray-300 border border-gray-600">
-              {children}
-            </td>
-          ),
-          hr: () => <hr className="my-3 border-t border-gray-600" />,
+          thead: ({ children }) => <thead className={styles.tableHead}>{children}</thead>,
+          tbody: ({ children }) => <tbody>{children}</tbody>,
+          tr: ({ children }) => <tr className={styles.tableRow}>{children}</tr>,
+          th: ({ children }) => <th className={styles.tableHeader}>{children}</th>,
+          td: ({ children }) => <td className={styles.tableCell}>{children}</td>,
+          hr: () => <hr className={styles.horizontalRule} />,
         }}
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeRaw, rehypeKatex]}

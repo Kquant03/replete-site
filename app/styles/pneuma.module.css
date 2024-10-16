@@ -109,6 +109,7 @@
 .message {
   position: relative;
   padding: 1rem;
+  padding-bottom: 3rem; /* Increase bottom padding to make room for buttons */
   margin-bottom: 1rem;
   border-radius: 15px;
   max-width: 90%;
@@ -178,22 +179,56 @@
 .messageSender {
   font-family: 'Orbitron', sans-serif;
   font-weight: 600;
-  margin-bottom: 0.3rem;
+  margin-bottom: 1rem; /* Add space below the sender's name */
   display: block;
   color: #ffffff;
 }
 
 .messageContent {
   position: relative;
-  font-family: 'Roboto', sans-serif;
-  line-height: 1.4;
-  margin-bottom: 2rem;
+  width: 100%;
+  overflow-x: visible;
+  overflow-y: visible;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem; /* Add some space between content and buttons */
+}
+
+.messageContent > * {
+  margin-bottom: 0.5rem;
+}
+
+.messageContent > *:last-child {
+  margin-bottom: 0;
+}
+
+.messageContent table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+
+.messageContent th,
+.messageContent td {
+  border: 1px solid #4b5563;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.messageContent th {
+  background-color: #374151;
+  font-weight: bold;
+}
+
+.messageContent .tableContainer {
+  overflow-x: auto;
+  margin: 0.5rem 0;
 }
 
 .messageActions {
   position: absolute;
-  bottom: 0.5rem;
-  right: 0.5rem;
+  bottom: 0.75rem; /* Adjust this value to move buttons up or down */
+  right: 0.75rem;
   display: flex;
   gap: 0.5rem;
 }
