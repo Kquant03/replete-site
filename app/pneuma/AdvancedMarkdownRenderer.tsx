@@ -186,9 +186,9 @@ const AdvancedMarkdownRenderer: React.FC<AdvancedMarkdownRendererProps> = ({ con
           h4: ({ children }) => <h4 className="text-sm font-medium mt-2 mb-1">{children}</h4>,
           h5: ({ children }) => <h5 className="text-sm font-medium mt-2 mb-1">{children}</h5>,
           h6: ({ children }) => <h6 className="text-xs font-medium mt-2 mb-1">{children}</h6>,
-          ul: ({ children }) => <ul className="list-disc pl-4 my-2 space-y-1 text-sm">{children}</ul>,
-          ol: ({ children }) => <ol className="list-decimal pl-4 my-2 space-y-1 text-sm">{children}</ol>,
-          li: ({ children }) => <li className="mb-1">{children}</li>,
+          ul: ({ children }) => <ul className="list-disc pl-4 my-1 space-y-0.5 text-sm">{children}</ul>,
+          ol: ({ children }) => <ol className="list-decimal pl-4 my-1 space-y-0.5 text-sm">{children}</ol>,
+          li: ({ children }) => <li className="mb-0.5">{children}</li>,
           blockquote: ({ children }) => (
             <blockquote className="border-l-2 border-gray-400 pl-3 py-1 my-2 text-sm italic text-gray-300">
               {children}
@@ -214,19 +214,19 @@ const AdvancedMarkdownRenderer: React.FC<AdvancedMarkdownRendererProps> = ({ con
           ),
           table: ({ children }) => (
             <div className="overflow-x-auto my-2">
-              <table className="min-w-full divide-y divide-gray-600 text-sm">
+              <table className="min-w-full divide-y divide-gray-600 text-sm border-collapse">
                 {children}
               </table>
             </div>
           ),
           thead: ({ children }) => <thead className="bg-gray-700">{children}</thead>,
           th: ({ children }) => (
-            <th className="px-2 py-1 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+            <th className="px-3 py-2 text-left text-xs font-medium text-gray-300 uppercase tracking-wider border border-gray-600">
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="px-2 py-1 text-sm text-gray-300">
+            <td className="px-3 py-2 text-sm text-gray-300 border border-gray-600">
               {children}
             </td>
           ),

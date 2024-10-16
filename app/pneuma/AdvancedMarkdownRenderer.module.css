@@ -1,3 +1,7 @@
+.markdownContent {
+  color: #e5e7eb;
+}
+
 .codeBlockWrapper {
   position: relative;
   margin: 1rem 0;
@@ -63,4 +67,117 @@
   padding: 0.2em 0.4em;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* Updated styles for lists and tables */
+.list {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  padding-left: 1.5rem;
+}
+
+.listItem {
+  margin-bottom: 0.125rem;
+}
+
+.nestedList {
+  margin-top: 0.125rem;
+  margin-bottom: 0.125rem;
+}
+
+.tableWrapper {
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0;
+}
+
+.tableCell {
+  border: 1px solid #4b5563;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.tableHeader {
+  border: 1px solid #4b5563;
+  padding: 0.5rem;
+  text-align: left;
+  background-color: #374151;
+  font-weight: bold;
+}
+
+/* Additional styles for other elements */
+.paragraph {
+  margin-bottom: 1rem;
+}
+
+.heading1 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.heading2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.heading3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.heading4, .heading5, .heading6 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.blockquote {
+  border-left: 4px solid #4b5563;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+}
+
+.link {
+  color: #60a5fa;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.imageWrapper {
+  margin: 1rem 0;
+}
+
+.image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.25rem;
+}
+
+.imageCaption {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #9ca3af;
+  margin-top: 0.5rem;
+}
+
+.horizontalRule {
+  border: 0;
+  border-top: 1px solid #4b5563;
+  margin: 1rem 0;
 }
