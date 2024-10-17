@@ -285,7 +285,7 @@ const Home: React.FC = () => {
                         <span className={styles.heading}>Replete AI</span>
                       </div>
                       <div className={styles.socialLinks}>
-                        <Link href="https://huggingface.co/">
+                        <Link href="https://huggingface.co/Replete-AI">
                           <Image
                             src="/huggingface-logo.png"
                             alt="HuggingFace"
