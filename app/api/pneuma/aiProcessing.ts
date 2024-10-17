@@ -68,7 +68,7 @@ export async function pruneMessages(messages: Message[], systemPrompt: string): 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${TABBY_API_KEY}`
         },
-        timeout: 30000 // 30 seconds timeout
+        timeout: 60000 // 60 seconds timeout
       });
   
       console.log('API response status:', response.status);
