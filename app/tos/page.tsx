@@ -14,7 +14,7 @@ const staggerVariants = {
   visible: { opacity: 1, transition: { staggerChildren: 0.2 } },
 };
 
-export default function TermsOfService() {
+const TermsOfService: React.FC = () => {
   return (
     <motion.div
       initial="hidden"
@@ -35,3 +35,5 @@ export default function TermsOfService() {
     </motion.div>
   );
 }
+
+export default TermsOfService;
