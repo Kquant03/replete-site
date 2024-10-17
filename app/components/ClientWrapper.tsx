@@ -2,13 +2,14 @@
 
 import React from 'react';
 import ClientLayout from './ClientLayout';
-import { BackgroundProvider } from '../contexts/BackgroundContext';
+import PersistentBackground from './PersistentBackground';
 
 const ClientWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <BackgroundProvider>
+    <>
+      <PersistentBackground />
       <ClientLayout>{children}</ClientLayout>
-    </BackgroundProvider>
+    </>
   );
 };
 
