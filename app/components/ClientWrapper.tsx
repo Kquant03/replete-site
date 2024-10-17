@@ -1,18 +1,15 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import React from 'react';
 import ClientLayout from './ClientLayout';
+import { BackgroundProvider } from '../contexts/BackgroundContext';
 
 const ClientWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const pathname = usePathname();
-  const [key, setKey] = useState(0);
-
-  useEffect(() => {
-    setKey(prev => prev + 1);
-  }, [pathname]);
-
-  return <ClientLayout key={key}>{children}</ClientLayout>;
+  return (
+    <BackgroundProvider>
+      <ClientLayout>{children}</ClientLayout>
+    </BackgroundProvider>
+  );
 };
 
 export default ClientWrapper;

@@ -1,13 +1,11 @@
-import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import styles from '../styles/ConstellationBackground.module.css';
 
 const ConstellationBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [opacity, setOpacity] = useState(1);
   const particleCount = useMemo(() => window.innerWidth < 768 ? 60 : 120, []);
-  const [key, setKey] = useState(0);
 
   const particleColors = useMemo(() => [
     'rgb(0, 191, 255)',   // Deep Sky Blue
@@ -23,22 +21,6 @@ const ConstellationBackground: React.FC = () => {
   ], []);
 
   const lineColor = useMemo(() => 'rgba(147, 112, 219, 0.2)', []);
-
-  const restartAnimation = useCallback(() => {
-    setOpacity(0);
-    setTimeout(() => {
-      setKey(prevKey => prevKey + 1);
-      setOpacity(1);
-    }, 300);
-  }, []);
-
-  useEffect(() => {
-    const resetInterval = setInterval(() => {
-      restartAnimation();
-    }, 5 * 60 * 1000); // Restart every 5 minutes
-
-    return () => clearInterval(resetInterval);
-  }, [restartAnimation]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -316,8 +298,6 @@ const ConstellationBackground: React.FC = () => {
       if (!ctx || !canvas) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      ctx.globalAlpha = opacity;
-
       for (let i = 0; i < particles.length; i++) {
         if (particles[i].active) {
           particles[i].draw(ctx);
@@ -359,15 +339,6 @@ const ConstellationBackground: React.FC = () => {
       animationFrameId = requestAnimationFrame(animate);
     }
 
-    function handleVisibilityChange() {
-      if (document.hidden) {
-        cancelAnimationFrame(animationFrameId);
-        setOpacity(0);
-      } else {
-        restartAnimation();
-      }
-    }
-
     // Initialize canvas size and particles
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -382,7 +353,6 @@ const ConstellationBackground: React.FC = () => {
     canvas.addEventListener('touchmove', handleTouchMove, { passive: true });
     canvas.addEventListener('touchend', handleTouchEnd);
     window.addEventListener('resize', handleResize);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     // Set isLoaded to true when the background is ready
     setIsLoaded(true);
@@ -394,27 +364,22 @@ const ConstellationBackground: React.FC = () => {
       canvas.removeEventListener('touchmove', handleTouchMove);
       canvas.removeEventListener('touchend', handleTouchEnd);
       window.removeEventListener('resize', handleResize);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [particleCount, key, opacity, restartAnimation, lineColor, particleColors]);
+  }, [particleCount, lineColor, particleColors]);
 
   return (
-    <AnimatePresence>
-      <motion.div
-        key={key}
-        className={styles.backgroundContainer}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isLoaded ? 1 : 0 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <canvas
-          ref={canvasRef}
-          className={styles.constellationCanvas}
-        />
-      </motion.div>
-    </AnimatePresence>
+    <motion.div
+      className={styles.backgroundContainer}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: isLoaded ? 1 : 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <canvas
+        ref={canvasRef}
+        className={styles.constellationCanvas}
+      />
+    </motion.div>
   );
 };
 
-export default React.memo(ConstellationBackground);
+export default ConstellationBackground;
