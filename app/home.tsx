@@ -19,55 +19,11 @@ const Home: React.FC = () => {
   const { scrollY } = useScroll();
   const { fadeOutBackgroundMusic } = useSound();
   const [isLoaded, setIsLoaded] = useState(false);
+  const [offeringsImagesLoaded, setOfferingsImagesLoaded] = useState(false);
 
   const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
   const heroScale = useTransform(scrollY, [0, 400], [1, 0.98]);
   const heroTranslateY = useTransform(scrollY, [0, 400], [0, 20]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoaded(true);
-    }, 500);
-
-    return () => {
-      clearTimeout(timer);
-      fadeOutBackgroundMusic(2);
-    };
-  }, [fadeOutBackgroundMusic]);
-
-  const pageVariants = {
-    initial: { opacity: 0 },
-    animate: { 
-      opacity: 1,
-      transition: { duration: 1, ease: "easeOut" }
-    },
-    exit: { opacity: 0 }
-  };
-
-  const contentVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: { 
-      opacity: 1, 
-      y: 0,
-      transition: { 
-        duration: 0.6,
-        ease: "easeOut",
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const sectionVariants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { 
-        duration: 0.6, 
-        ease: "easeOut"
-      }
-    }
-  };
 
   const offerings = [
     {
@@ -131,6 +87,68 @@ const Home: React.FC = () => {
     }
   ];
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoaded(true);
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+      fadeOutBackgroundMusic(2);
+    };
+  }, [fadeOutBackgroundMusic]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const imagePromises = offerings.map(offering => {
+        return new Promise((resolve, reject) => {
+          const img = new window.Image();
+          img.src = offering.image;
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+      });
+
+      Promise.all(imagePromises)
+        .then(() => setOfferingsImagesLoaded(true))
+        .catch(error => console.error('Error preloading offering images:', error));
+    }
+  }, [offerings]);
+
+  const pageVariants = {
+    initial: { opacity: 0 },
+    animate: { 
+      opacity: 1,
+      transition: { duration: 1, ease: "easeOut" }
+    },
+    exit: { opacity: 0 }
+  };
+
+  const contentVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.6,
+        ease: "easeOut",
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const sectionVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.6, 
+        ease: "easeOut"
+      }
+    }
+  };
+
   return (
     <HomePageSound>
       <div className={styles.homeContainer}>
@@ -189,7 +207,7 @@ const Home: React.FC = () => {
                       <p className={`${styles.text} ${sectionStyles.sectionDescription}`}>
                         Enjoy a comprehensive suite of projects and materials, created with passion and love by our community.
                       </p>
-                      <OfferingSection offerings={offerings} />
+                      {offeringsImagesLoaded && <OfferingSection offerings={offerings} />}
                     </div>
                   </motion.section>
 
