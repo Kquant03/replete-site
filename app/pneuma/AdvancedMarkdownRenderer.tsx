@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { Components } from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
@@ -117,111 +118,111 @@ interface AdvancedMarkdownRendererProps {
 }
 
 const AdvancedMarkdownRenderer: React.FC<AdvancedMarkdownRendererProps> = ({ content, className }) => {
-  const preprocessContent = (rawContent: string) => {
-    const lines = rawContent.split('\n');
-    let inCodeBlock = false;
-    const processedLines = lines.map(line => {
-      if (line.trim().startsWith('```')) {
-        inCodeBlock = !inCodeBlock;
-        return line;
+  const components: Components = {
+    code({ className, children, ...props }) {
+      const match = /language-(\w+)/.exec(className || '');
+      const lang = match ? match[1] : '';
+      const value = String(children).replace(/\n$/, '');
+      
+      if (!className && !lang) {
+        return (
+          <code className={styles.inlineCode} {...props}>
+            {value}
+          </code>
+        );
       }
-      if (!inCodeBlock) {
-        return line.replace(/`([^`\n]+)`/g, '§§INLINE_CODE_START§§$1§§INLINE_CODE_END§§');
-      }
-      return line;
-    });
-    return processedLines.join('\n');
-  };
 
-  const processedContent = preprocessContent(content);
+      return <CodeBlock language={lang} value={value} />;
+    },
+    p({ children }) {
+      if (typeof children === 'string') {
+        return (
+          <p className={styles.paragraph}>
+            {children.split(/(`.*?`)/).map((part, index) => {
+              if (part.startsWith('`') && part.endsWith('`')) {
+                const code = part.slice(1, -1);
+                return (
+                  <code key={index} className={styles.inlineCode}>
+                    {code}
+                  </code>
+                );
+              }
+              return part;
+            })}
+          </p>
+        );
+      }
+      return <p className={styles.paragraph}>{children}</p>;
+    },
+    h1({ children }) { return <h1 className={styles.heading1}>{children}</h1>; },
+    h2({ children }) { return <h2 className={styles.heading2}>{children}</h2>; },
+    h3({ children }) { return <h3 className={styles.heading3}>{children}</h3>; },
+    h4({ children }) { return <h4 className={styles.heading4}>{children}</h4>; },
+    h5({ children }) { return <h5 className={styles.heading5}>{children}</h5>; },
+    h6({ children }) { return <h6 className={styles.heading6}>{children}</h6>; },
+    ol: ({ children, start, ...props }) => (
+      <ol className={`${styles.list} ${styles.orderedList}`} start={start} {...props}>
+        {children}
+      </ol>
+    ),
+    ul: ({ children, ...props }) => (
+      <ul className={`${styles.list} ${styles.unorderedList}`} {...props}>
+        {children}
+      </ul>
+    ),
+    li: ({ children, ...props }) => (
+      <li className={styles.listItem} {...props}>
+        {children}
+      </li>
+    ),
+    blockquote({ children }) {
+      return <blockquote className={styles.blockquote}>{children}</blockquote>;
+    },
+    a({ href, children }) {
+      return (
+        <a href={href} className={styles.link} target="_blank" rel="noopener noreferrer">
+          {children}
+        </a>
+      );
+    },
+    img({ src, alt }) {
+      return (
+        <div className={styles.imageWrapper}>
+          <Image 
+            src={src || ''}
+            alt={alt || ''}
+            width={500}
+            height={300}
+            layout="responsive"
+            className={styles.image}
+          />
+          {alt && <p className={styles.imageCaption}>{alt}</p>}
+        </div>
+      );
+    },
+    table({ children }) {
+      return (
+        <div className={styles.tableContainer}>
+          <table className={styles.table}>{children}</table>
+        </div>
+      );
+    },
+    thead({ children }) { return <thead className={styles.tableHead}>{children}</thead>; },
+    tbody({ children }) { return <tbody>{children}</tbody>; },
+    tr({ children }) { return <tr className={styles.tableRow}>{children}</tr>; },
+    th({ children }) { return <th className={styles.tableHeader}>{children}</th>; },
+    td({ children }) { return <td className={styles.tableCell}>{children}</td>; },
+    hr() { return <hr className={styles.horizontalRule} />; },
+  };
 
   return (
     <div className={`${styles.markdownContent} ${className || ''}`}>
       <ReactMarkdown
-        components={{
-          code({ className, children, ...props }) {
-            const match = /language-(\w+)/.exec(className || '');
-            const lang = match ? match[1] : '';
-            const value = String(children).replace(/\n$/, '');
-            
-            if (value.startsWith('§§INLINE_CODE_START§§') && value.endsWith('§§INLINE_CODE_END§§')) {
-              const inlineCode = value.replace('§§INLINE_CODE_START§§', '').replace('§§INLINE_CODE_END§§', '');
-              return (
-                <code className={styles.inlineCode} {...props}>
-                  {inlineCode}
-                </code>
-              );
-            }
-
-            return <CodeBlock language={lang} value={value} />;
-          },
-          p: ({ children }) => {
-            if (typeof children === 'string') {
-              const parts = children.split(/(§§INLINE_CODE_START§§.*?§§INLINE_CODE_END§§)/);
-              return (
-                <p className={styles.paragraph}>
-                  {parts.map((part, index) => {
-                    if (part.startsWith('§§INLINE_CODE_START§§') && part.endsWith('§§INLINE_CODE_END§§')) {
-                      const code = part.replace('§§INLINE_CODE_START§§', '').replace('§§INLINE_CODE_END§§', '');
-                      return (
-                        <code key={index} className={styles.inlineCode}>
-                          {code}
-                        </code>
-                      );
-                    }
-                    return part;
-                  })}
-                </p>
-              );
-            }
-            return <p className={styles.paragraph}>{children}</p>;
-          },
-          h1: ({ children }) => <h1 className={styles.heading1}>{children}</h1>,
-          h2: ({ children }) => <h2 className={styles.heading2}>{children}</h2>,
-          h3: ({ children }) => <h3 className={styles.heading3}>{children}</h3>,
-          h4: ({ children }) => <h4 className={styles.heading4}>{children}</h4>,
-          h5: ({ children }) => <h5 className={styles.heading5}>{children}</h5>,
-          h6: ({ children }) => <h6 className={styles.heading6}>{children}</h6>,
-          ul: ({ children }) => <ul className={styles.list}>{children}</ul>,
-          ol: ({ children }) => <ol className={styles.list}>{children}</ol>,
-          li: ({ children }) => <li className={styles.listItem}>{children}</li>,
-          blockquote: ({ children }) => (
-            <blockquote className={styles.blockquote}>{children}</blockquote>
-          ),
-          a: ({ href, children }) => (
-            <a href={href} className={styles.link} target="_blank" rel="noopener noreferrer">
-              {children}
-            </a>
-          ),
-          img: ({ src, alt }) => (
-            <div className={styles.imageWrapper}>
-              <Image 
-                src={src || ''}
-                alt={alt || ''}
-                width={500}
-                height={300}
-                layout="responsive"
-                className={styles.image}
-              />
-              {alt && <p className={styles.imageCaption}>{alt}</p>}
-            </div>
-          ),
-          table: ({ children }) => (
-            <div className={styles.tableContainer}>
-              <table className={styles.table}>{children}</table>
-            </div>
-          ),
-          thead: ({ children }) => <thead className={styles.tableHead}>{children}</thead>,
-          tbody: ({ children }) => <tbody>{children}</tbody>,
-          tr: ({ children }) => <tr className={styles.tableRow}>{children}</tr>,
-          th: ({ children }) => <th className={styles.tableHeader}>{children}</th>,
-          td: ({ children }) => <td className={styles.tableCell}>{children}</td>,
-          hr: () => <hr className={styles.horizontalRule} />,
-        }}
+        components={components}
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[rehypeRaw, rehypeKatex]}
       >
-        {processedContent}
+        {content}
       </ReactMarkdown>
     </div>
   );

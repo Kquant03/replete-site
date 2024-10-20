@@ -19,7 +19,7 @@ const Home: React.FC = () => {
   const { scrollY } = useScroll();
   const { fadeOutBackgroundMusic } = useSound();
   const [isLoaded, setIsLoaded] = useState(false);
-  const [offeringsImagesLoaded, setOfferingsImagesLoaded] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
 
   const heroOpacity = useTransform(scrollY, [0, 400], [1, 0]);
   const heroScale = useTransform(scrollY, [0, 400], [1, 0.98]);
@@ -99,21 +99,24 @@ const Home: React.FC = () => {
   }, [fadeOutBackgroundMusic]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const imagePromises = offerings.map(offering => {
-        return new Promise((resolve, reject) => {
-          const img = new window.Image();
-          img.src = offering.image;
-          img.onload = resolve;
-          img.onerror = reject;
-        });
-      });
+    const allImages = [
+      ...offerings.map(offering => offering.image),
+      ...blogPosts.flatMap(post => [post.mobileImage, post.desktopImage])
+    ];
 
-      Promise.all(imagePromises)
-        .then(() => setOfferingsImagesLoaded(true))
-        .catch(error => console.error('Error preloading offering images:', error));
-    }
-  }, [offerings]);
+    const imagePromises = allImages.map(src => {
+      return new Promise<void>((resolve, reject) => {
+        const img = new window.Image();
+        img.src = src;
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+      });
+    });
+
+    Promise.all(imagePromises)
+      .then(() => setImagesLoaded(true))
+      .catch(error => console.error('Error preloading images:', error));
+  }, [offerings, blogPosts]);
 
   const pageVariants = {
     initial: { opacity: 0 },
@@ -151,10 +154,10 @@ const Home: React.FC = () => {
 
   return (
     <HomePageSound>
+    <ConstellationBackground />
       <div className={styles.homeContainer}>
-        <ConstellationBackground />
         <AnimatePresence>
-          {isLoaded && (
+          {isLoaded && imagesLoaded && (
             <motion.div
               className={styles.content}
               initial="initial"
@@ -207,7 +210,7 @@ const Home: React.FC = () => {
                       <p className={`${styles.text} ${sectionStyles.sectionDescription}`}>
                         Enjoy a comprehensive suite of projects and materials, created with passion and love by our community.
                       </p>
-                      {offeringsImagesLoaded && <OfferingSection offerings={offerings} />}
+                      <OfferingSection offerings={offerings} />
                     </div>
                   </motion.section>
 
@@ -268,7 +271,7 @@ const Home: React.FC = () => {
                         Connect with fellow AI enthusiasts, share your projects, and learn from experts in our vibrant Discord community.
                       </p>
                       <div className={sectionStyles.centerButton}>
-                        <Link href="/discord" className={styles.primaryButton}>
+                        <Link href="https://discord.gg/awyCNx3nnw" className={styles.primaryButton}>
                           Join Discord <FiArrowRight />
                         </Link>
                       </div>

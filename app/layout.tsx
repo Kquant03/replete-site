@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import './globals.css';
-import ClientWrapper from './components/ClientWrapper';
+import ClientLayout from './components/ClientLayout';
 
 export const metadata: Metadata = {
   title: 'Replete AI',
@@ -16,9 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <ClientWrapper>
+        <ClientLayout>
           {children}
-        </ClientWrapper>
+        </ClientLayout>
       </body>
     </html>
   );

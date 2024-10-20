@@ -104,13 +104,21 @@
 }
 
 .list {
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
-  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding-left: 2rem;
+}
+
+.unorderedList {
+  list-style-type: disc;
+}
+
+.orderedList {
+  list-style-type: decimal;
 }
 
 .listItem {
-  margin-bottom: 0.125rem;
+  margin-bottom: 0.25rem;
 }
 
 .blockquote {
@@ -152,7 +160,7 @@
   margin: 1rem 0;
 }
 
-/* Updated table styles */
+/* Table styles */
 .tableContainer {
   margin: 0.5rem 0;
   overflow-x: auto;

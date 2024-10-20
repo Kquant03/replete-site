@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
 const DynamicConstellationBackground = dynamic(
@@ -7,7 +10,9 @@ const DynamicConstellationBackground = dynamic(
 );
 
 const ConstellationBackground: React.FC = () => {
-  return <DynamicConstellationBackground />;
+  const pathname = usePathname();
+
+  return <DynamicConstellationBackground key={pathname} pathname={pathname} />;
 };
 
 export default ConstellationBackground;
