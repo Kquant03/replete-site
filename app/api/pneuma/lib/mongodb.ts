@@ -21,20 +21,33 @@ export async function connectToMongoDB() {
   const options: MongoClientOptions = {
     maxPoolSize: 1,
     minPoolSize: 1,
-    maxIdleTimeMS: 10000,
-    serverSelectionTimeoutMS: 10000,
-    socketTimeoutMS: 20000,
+    maxIdleTimeMS: 5000,
+    serverSelectionTimeoutMS: 5000, // Reduced from 10000
+    socketTimeoutMS: 5000, // Reduced from 20000
+    connectTimeoutMS: 5000, // Added explicit connect timeout
     ssl: true,
     tls: true
   };
 
   try {
-    const client = new MongoClient(uri, options);
-    await client.connect();
+    // Set a timeout for the entire connection attempt
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Connection attempt timed out'));
+      }, 8000); // 8 second timeout
+    });
+
+    const connectionPromise = async () => {
+      const client = new MongoClient(uri, options);
+      await client.connect();
+      await client.db('admin').command({ ping: 1 });
+      return client;
+    };
+
+    // Race between connection and timeout
+    const client = await Promise.race([connectionPromise(), timeoutPromise]) as MongoClient;
     
-    await client.db('admin').command({ ping: 1 });
     console.log('Connected successfully to MongoDB');
-    
     cachedClient = client;
     return client;
   } catch (error) {
