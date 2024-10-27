@@ -14,6 +14,10 @@ export async function connectToMongoDB() {
     return cachedClient;
   }
 
+  if (!uri) {
+    throw new Error('MongoDB URI is not defined');
+  }
+
   const options: MongoClientOptions = {
     maxPoolSize: 1,
     minPoolSize: 1,
@@ -23,7 +27,7 @@ export async function connectToMongoDB() {
   };
 
   try {
-    // Modify connection string to force TLS 1.2
+    // Now TypeScript knows uri is defined
     const modifiedUri = uri.includes('?') 
       ? `${uri}&tls=true&tlsInsecure=false`
       : `${uri}?tls=true&tlsInsecure=false`;
