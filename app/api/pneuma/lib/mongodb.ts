@@ -24,15 +24,12 @@ export async function connectToMongoDB() {
     maxIdleTimeMS: 10000,
     serverSelectionTimeoutMS: 10000,
     socketTimeoutMS: 20000,
+    ssl: true,
+    tls: true
   };
 
   try {
-    // Now TypeScript knows uri is defined
-    const modifiedUri = uri.includes('?') 
-      ? `${uri}&tls=true&tlsInsecure=false`
-      : `${uri}?tls=true&tlsInsecure=false`;
-
-    const client = new MongoClient(modifiedUri, options);
+    const client = new MongoClient(uri, options);
     await client.connect();
     
     await client.db('admin').command({ ping: 1 });
