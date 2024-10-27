@@ -1,4 +1,4 @@
-import { MongoClient, MongoClientOptions } from 'mongodb';
+import { MongoClient, MongoClientOptions, ServerApiVersion } from 'mongodb';
 
 const uri = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_DB;
@@ -9,6 +9,16 @@ if (!uri) {
 
 let cachedClient: MongoClient | null = null;
 
+interface MongoErrorType {
+  name?: string;
+  message: string;
+  cause?: unknown;
+}
+
+function isMongoError(error: unknown): error is MongoErrorType {
+  return typeof error === 'object' && error !== null && 'message' in error;
+}
+
 export async function connectToMongoDB() {
   if (cachedClient) {
     return cachedClient;
@@ -18,9 +28,16 @@ export async function connectToMongoDB() {
     throw new Error('MongoDB URI is not defined');
   }
 
+  // Set Node.js TLS settings
+  process.env.NODE_TLS_MIN_VERSION = 'TLSv1.2';
+  process.env.NODE_TLS_MAX_VERSION = 'TLSv1.3';
+
   const options: MongoClientOptions = {
-    connectTimeoutMS: 5000,
-    socketTimeoutMS: 5000,
+    serverApi: {
+      version: ServerApiVersion.v1,
+      strict: true,
+      deprecationErrors: true,
+    }
   };
 
   try {
@@ -28,8 +45,16 @@ export async function connectToMongoDB() {
     await client.connect();
     cachedClient = client;
     return client;
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
+  } catch (error: unknown) {
+    if (isMongoError(error)) {
+      console.error('MongoDB connection error:', {
+        errorName: error.name || 'UnknownError',
+        errorMessage: error.message,
+        cause: error.cause
+      });
+    } else {
+      console.error('Unknown MongoDB connection error:', error);
+    }
     throw error;
   }
 }
