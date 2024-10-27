@@ -37,7 +37,11 @@ export async function connectToMongoDB() {
       version: ServerApiVersion.v1,
       strict: true,
       deprecationErrors: true,
-    }
+    },
+    ssl: true,
+    tls: true,
+    tlsCAFile: undefined, // Let MongoDB driver handle CA certificates
+    connectTimeoutMS: 5000,
   };
 
   try {
