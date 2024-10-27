@@ -12,7 +12,6 @@ const DynamicConstellationBackground: React.FC<DynamicConstellationBackgroundPro
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isLoaded, setIsLoaded] = useState(false);
-    const [fps, setFps] = useState(60);
     const particleCount = useMemo(() => typeof window !== 'undefined' ? (window.innerWidth < 768 ? 60 : 120) : 120, []);
     const animationRef = useRef<number | null>(null);
     const isVisibleRef = useRef(true);
@@ -38,8 +37,6 @@ const DynamicConstellationBackground: React.FC<DynamicConstellationBackgroundPro
     const lastTimeRef = useRef(performance.now());
     const accumulatedTimeRef = useRef(0);
     const fixedTimeStep = 1000 / 60;
-    const frameCountRef = useRef(0);
-    const lastFpsUpdateTimeRef = useRef(performance.now());
     const fadeInDurationRef = useRef(2000); // 2 second fade-in duration
 
     class Particle {
@@ -302,17 +299,6 @@ const DynamicConstellationBackground: React.FC<DynamicConstellationBackgroundPro
     });
   }, [lineColor]);
 
-  const updateFps = useCallback((currentTime: number) => {
-    frameCountRef.current++;
-    if (currentTime - lastFpsUpdateTimeRef.current > 1000) {
-      const newFps = Math.round((frameCountRef.current * 1000) / (currentTime - lastFpsUpdateTimeRef.current));
-      setFps(newFps);
-      console.log('FPS:', newFps);
-      frameCountRef.current = 0;
-      lastFpsUpdateTimeRef.current = currentTime;
-    }
-  }, []);
-
   const animate = useCallback((currentTime: number) => {
     if (!isVisibleRef.current || !isAnimatingRef.current) {
       console.log('Animation stopped: visible =', isVisibleRef.current, 'animating =', isAnimatingRef.current);
@@ -330,10 +316,9 @@ const DynamicConstellationBackground: React.FC<DynamicConstellationBackgroundPro
     }
 
     drawParticles();
-    updateFps(currentTime);
 
     animationRef.current = requestAnimationFrame(animate);
-  }, [updateParticles, drawParticles, updateFps]);
+  }, [updateParticles, drawParticles]);
 
   const pauseAnimation = useCallback(() => {
     console.log('Pausing animation');
@@ -481,11 +466,6 @@ const DynamicConstellationBackground: React.FC<DynamicConstellationBackgroundPro
         ref={canvasRef}
         className={styles.constellationCanvas}
       />
-      {process.env.NODE_ENV === 'development' && (
-        <div style={{ position: 'fixed', top: 10, left: 10, color: 'white', backgroundColor: 'rgba(0,0,0,0.5)', padding: '5px' }}>
-          FPS: {fps}
-        </div>
-      )}
     </motion.div>
   );
 };

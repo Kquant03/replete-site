@@ -155,8 +155,8 @@
 
 .paragraph {
   font-family: "Roboto", sans-serif;
-  line-height: 1.6;
-  margin-bottom: 1rem;
+  line-height: 1.4;
+  margin-bottom: 1.5rem;
   color: rgba(255, 255, 255, 0.9);
 }
 
@@ -184,12 +184,33 @@
 }
 
 .unorderedList, .orderedList {
-  margin-bottom: 1rem;
-  padding-left: 2rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
+  padding-left: 2.5rem;
 }
 
 .listItem {
   margin-bottom: 0.5rem;
+}
+
+.codeBlockWrapper {
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.codeBlockHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.codeBlockLanguage {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
 }
 
 .codeBlock {
@@ -202,8 +223,21 @@
   transition: all 0.3s ease-out;
 }
 
-.codeBlock:hover {
-  box-shadow: 0 4px 15px rgba(127, 90, 240, 0.3);
+.codeBlockCopyBtn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: color 0.3s ease-out;
+}
+
+.codeBlockCopyBtn:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+.syntaxHighlighter {
+  border-radius: 0 0 0.5rem 0.5rem;
+  overflow-x: auto;
 }
 
 .inlineCode {
@@ -216,6 +250,27 @@
 
 .inlineCode:hover {
   background-color: rgba(127, 90, 240, 0.2);
+}
+
+.codeBlockCopiedIndicator {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  opacity: 0;
+  animation: fadeInOut 2s ease-out;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 .blockquote {

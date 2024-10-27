@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Queue } from './queue';
+import { Queue } from '../lib/queue';
 
 const MAX_CONCURRENT_REQUESTS = 3;
-
 const globalQueue = new Queue(MAX_CONCURRENT_REQUESTS);
 
 export async function POST(request: NextRequest) {
@@ -10,13 +9,36 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     console.log('[POST] Request body:', JSON.stringify(body, null, 2));
-    const { chatState, userInput, userName, isRegeneration = false, editedMessageId = null, userSettings, usePreDefinedPrompt } = body;
+    const { 
+      chatState, 
+      userInput, 
+      userName, 
+      isRegeneration = false, 
+      editedMessageId = null, 
+      userSettings, 
+      usePreDefinedPrompt,
+      type = 'chat' 
+    } = body;
 
-    if (!chatState || typeof userInput !== 'string' || typeof userName !== 'string' || typeof isRegeneration !== 'boolean' || !userSettings || typeof usePreDefinedPrompt !== 'boolean') {
+    if (!chatState || 
+        typeof userInput !== 'string' || 
+        typeof userName !== 'string' || 
+        typeof isRegeneration !== 'boolean' || 
+        !userSettings || 
+        typeof usePreDefinedPrompt !== 'boolean') {
       throw new Error('Invalid request body');
     }
 
-    const { id, position } = await globalQueue.enqueue(chatState, userInput, userName, isRegeneration, editedMessageId, userSettings, usePreDefinedPrompt);
+    const { id, position } = await globalQueue.enqueue(
+      chatState, 
+      userInput, 
+      userName, 
+      isRegeneration, 
+      editedMessageId, 
+      userSettings, 
+      usePreDefinedPrompt,
+      type
+    );
 
     console.log(`[POST] Enqueued request ${id} at position ${position}`);
     return NextResponse.json({ 
@@ -54,16 +76,19 @@ export async function GET(request: NextRequest) {
         if ('error' in result) {
           console.log(`[GET] Error in result for request ${requestId}:`, result.error);
           return NextResponse.json({ error: result.error }, { status: 500 });
-        } else {
-          console.log(`[GET] Returning completed result for request ${requestId}:`, JSON.stringify(result, null, 2));
+        } else if ('title' in result) {
+          console.log(`[GET] Returning completed title result for request ${requestId}:`, result);
           return NextResponse.json({ 
             status, 
             queuePosition: 0, 
-            result: {
-              messages: result.messages,
-              systemPrompt: result.systemPrompt
-            },
-            totalQueueLength: globalQueue.getTotalQueueLength()
+            result: result
+          });
+        } else {
+          console.log(`[GET] Returning completed chat result for request ${requestId}:`, result);
+          return NextResponse.json({ 
+            status, 
+            queuePosition: 0, 
+            result: result
           });
         }
       } else {

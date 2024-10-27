@@ -1,6 +1,5 @@
-import MDXImage from '../../../../components/MDXImage'
-
-# Mixtral and MoE: Using Multiple Models at the Same Time
+<Title>Mixtral and MoE</Title>
+<Tagline>Using Multiple Models at the Same Time</Tagline>
 
 Mixtral, developed by Mistral.ai is based off an architecture that was developed in the 1990's called Mixture of Experts, or MoE for short. Essentially, it uses an entire model as a Feed Forward Network. You can read the full documentation [here](https://huggingface.co/blog/moe)
 
@@ -18,9 +17,7 @@ So, what exactly is a MoE? In the context of transformer models, a MoE consists 
 
 At every layer, for every token, a router network chooses two of these groups (the "experts") to process the token and combine their output additively.
 
-<MDXImage src="/MOE.webp" alt="Switch Layer" width={1274} height={982} padding="15px" />
-
-MoE layer from the [Switch Transformers paper](https://arxiv.org/abs/2101.03961)
+![Token Computation](/images/MOE.webp "MoE layer from the Switch Transformers paper")
 
 So, to recap, in MoEs we replace every FFN layer of the transformer model with an MoE layer, which is composed of a gate network and a certain number of experts.
 

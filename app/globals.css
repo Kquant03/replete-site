@@ -54,10 +54,6 @@ a {
   transition: color var(--transition-duration);
 }
 
-a:hover {
-  color: var(--secondary-color);
-}
-
 button {
   font-family: var(--font-secondary);
   font-weight: 600;
@@ -68,15 +64,6 @@ button {
   color: var(--text-color);
   cursor: pointer;
   transition: background-color var(--transition-duration), transform var(--transition-duration);
-}
-
-button:hover {
-  background-color: var(--secondary-color);
-  transform: translateY(-2px);
-}
-
-button:active {
-  transform: translateY(0);
 }
 
 /* Styles for Pneuma page */
@@ -91,4 +78,16 @@ button:active {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+/* styles/globals.css */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -1,0 +1,209 @@
+/* ConversationModals.module.css */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(11, 0, 21, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+    backdrop-filter: blur(8px);
+  }
+  
+  .modalContent {
+    background: linear-gradient(145deg, rgba(11, 0, 21, 0.95), rgba(30, 10, 60, 0.95));
+    border-radius: 20px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(127, 90, 240, 0.2);
+  }
+  
+  .modalHeader {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(76, 201, 240, 0.2);
+  }
+  
+  .modalHeader h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #ffffff;
+    font-family: 'Orbitron', sans-serif;
+    background: linear-gradient(45deg, #4cc9f0, #7f5af0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .icon {
+    font-size: 1.5rem;
+    color: #4cc9f0;
+  }
+  
+  .iconWarning {
+    font-size: 1.5rem;
+    color: #ff4d4d;
+  }
+  
+  .closeButton {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .closeButton:hover {
+    color: #4cc9f0;
+    transform: scale(1.1);
+  }
+  
+  .modalBody {
+    margin-bottom: 2rem;
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.6;
+  }
+  
+  .warningText {
+    color: #ff4d4d;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .input {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(127, 90, 240, 0.2);
+    border-radius: 5px;
+    color: #ffffff;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .input:focus {
+    outline: none;
+    border-color: rgba(127, 90, 240, 0.6);
+    box-shadow: 0 0 15px rgba(127, 90, 240, 0.3);
+  }
+  
+  .buttonContainer {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+  }
+  
+  .button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-family: 'Orbitron', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .cancelButton {
+    composes: button;
+    background: transparent;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .saveButton {
+    composes: button;
+    background: linear-gradient(135deg, #4cc9f0, #7f5af0);
+    color: white;
+    border: none;
+  }
+  
+  .deleteButton {
+    composes: button;
+    background: linear-gradient(135deg, #ff4d4d, #ff8f8f);
+    color: white;
+    border: none;
+  }
+  
+  .cancelButton:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  .saveButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(76, 201, 240, 0.3);
+  }
+  
+  .deleteButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 77, 77, 0.3);
+  }
+  
+  /* Form Styles */
+  .form {
+    width: 100%;
+  }
+  
+  /* Animation Classes */
+  .modalEnter {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  
+  .modalEnterActive {
+    opacity: 1;
+    transform: scale(1);
+    transition: opacity 300ms, transform 300ms;
+  }
+  
+  .modalExit {
+    opacity: 1;
+    transform: scale(1);
+  }
+  
+  .modalExitActive {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 300ms, transform 300ms;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .modalContent {
+      width: 95%;
+      margin: 1rem;
+      padding: 1.5rem;
+    }
+  
+    .buttonContainer {
+      flex-direction: column-reverse;
+      gap: 0.75rem;
+    }
+  
+    .button {
+      width: 100%;
+      justify-content: center;
+    }
+  }

@@ -1,0 +1,108 @@
+import Image from 'next/image'
+
+# A Comprehensive Guide On Installing Stable Diffusion (Windows, Mac, Linux)
+
+<Image src="/OIG4.gp.jpeg" alt="Generated with DALL-E" width={1024} height={1024} />
+*With the advent of A.I. technology and its increasing relevance in many fields of business and personal life alike, StabilityAI (unaffiliated) presents Stable Diffusion: a software program that can generate images using your local graphics card.*
+
+In this guide, we will go over how to install Automatic1111, a simplistic software that offers extensive support and combinations of different tools in order to enhance your image and video generation experience!
+
+### System Requirements
+This software is mostly supported on Nvidia cards and you **must have** at least 4GB of VRAM.
+
+## Installing on Windows
+### Step 1: Install Python 3.10.6
+[Located here](https://www.python.org/downloads/release/python-3106/), you can access the installers for Python 3.10.6, which is what Stable Diffusion currently runs on. When you finish installing Python, make sure to check the box that adds it to your PATH. This is vital.
+
+### Step 2: Install Git
+Git is what we used to create this guide! It's a handy tool for pushing, pulling, and cloning repositories in order for you or your teammates to use. This will help us clone the repository for automatic1111!
+
+The Windows version can be found [here](https://git-scm.com/download/win)...when you install it and open it, just click through the default configurations, there will be a lot of them. If you become interested more in development later on, you can just reinstall it with custom configurations, if needed.
+
+### Step 3: Clone Automatic1111
+Now that you have Git to clone with, and Python to run the models with, you're all set to clone the Automatic1111 repository!
+
+Press the Windows key, type "cmd" then click Command Prompt.
+
+I would create a folder to clone into, before going futher! If you have an external drive, create one titled "SD" and then do D: in command prompt...this should take you to the delta drive you made a folder in, if not, then figure out the Letter Label your drive has and do that instead (e.g. "E:")
+
+Once in your external (or if you just made it in your C drive) do "cd SD_FOLDER_PATH"
+
+Now you can run the command: git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
+
+This shouldn't take too long, just let it clone the repository and then begin step 4.
+
+### Step 4: Download a model!
+
+There is an amazing community over at [Civitai](https://civitai.com/) where you can filter by architecture, model type, date, ratings, downloads, among other things to find the best model of choice for your purposes, there's also a search bar if you want a specific model such as [Juggernaut Final](https://civitai.com/models/46422?modelVersionId=114770).
+
+Once you find and download a model (it should be in .safetensors or .pickletensors or it might be a .ckpt if it's old) you can just drag it into SD/stable-diffusion-webui/models/stablediffusion
+
+### Step 5: webui-user.bat
+
+Depending on your VRAM amount, you may want to add command line arguments such as --lowvram or --xformers in order to boost optimization. If you aren't worried about this, go ahead and just start the webui-user.bat by double clicking it, or right clicking and opening it.
+
+Eventually it will spit out a URL at you: http://127.0.0.1:7860 should be this exact one unless you call --port in the command line arguments to modify it.
+
+You've successfully installed Stable Diffusion on Windows!
+
+This guide will finish up with the rest of the installations for the other operating systems, but there are other guides on this page that cover extensions and will help you to learn how to apply this tool, as well as others, effectively.
+
+## Installing A1111 on Linux
+
+### Step 1: Install the dependencies
+
+## Debian-based:
+```sudo apt install wget git python3 python3-venv```
+## Red Hat-based:
+```sudo dnf install wget git python3```
+## Arch-based:
+```sudo pacman -S wget git python3```
+
+### Step 2: Navigate to the directory you would like the webui to be installed and execute the following command:
+
+```bash <(wget -qO- https://raw.githubusercontent.com/AUTOMATIC1111/stable-diffusion-webui/master/webui.sh)```
+
+### Step 3: Download Stable Diffusion Models
+To install a model in AUTOMATIC1111 GUI, download and place the checkpoint (.ckpt) file in the models/Stable-diffusion folder. Go to [HuggingFace](https://huggingface.co/) or [Civitai](https://civitai.com/) to find a model. Use wget command to download the model:
+```wget https://civitai.com/models/46422?modelVersionId=114770```
+
+Step 4. Run webui.sh
+```administrator@ubuntu:~/stable-diffusion/stable-diffusion-webui$ ./webui.sh --xformers --share```
+
+After running webui.sh, it will install all the dependencies. Then a link should pop up like this one: http://127.0.0.1:7860
+A public link by calling --share would result in gradio link which can be used by others.
+
+## Installing on Apple
+Apple devices are surprisingly amazing for inferencing purposes, their architecture allows you to "use their system RAM as VRAM"...it's not quite as simple as that, but just know that you don't have any real VRAM in this device, and it's a miracle that A.I. software runs this fast on it.
+
+### Step 1: Install Homebrew
+Before we proceed, we need to install Homebrew on your Mac. If you haven�t installed it yet, you can do so by copying and pasting the following command into your Terminal and pressing enter. This will install Homebrew on your system:
+```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"```
+
+### Step 2: Install Other Packages
+Next, we need to install several other packages that are necessary for the installation process. These packages include cmake, protobuf, rust, python, git, and wget .
+
+To install them all at once, type in the following command. If any of the packages have already been installed, they will be skipped during the installation process:
+```brew install cmake protobuf rust python@3.10 git wget```
+
+### Step 3: Clone Automatic1111
+Now we'll make a copy of AUTOMATIC1111 on your Mac, in the home directory. To do this, type cd in Terminal and hit Enter. This will take you back to the home folder.
+
+In the home folder, use the following command to make a copy (git clone) of AUTOMATIC1111 in your home directory:
+
+```git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui```
+
+### Step 4: Get a model
+Download a model from [Civitai](https://civitai.com/) and drop it into models>stablediffusion in your stable-diffusion-webui folder.
+
+### Step 5: Run A1111 on terminal
+Open a fresh terminal after closing the old one and do ```cd ~/stable-diffusion-webui;./webui.sh```
+
+It should spit out a link something like: http://127.0.0.1:7860/ unless you called --port to change it
+
+You can just cmd+click on that and it should take you to Stable Diffusion on Safari. If you use the --share commandline argument it will give you a public gradio link.
+
+## In conclusion
+
+That's the end of the guide, I appreciate you sticking with me, through it. If you need more information, there is plenty here on this site in reference to tools, extensions, techniques and more, all for you!

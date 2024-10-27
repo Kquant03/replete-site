@@ -1,5 +1,8 @@
-<Title>The Llama Architecture: Meta's Series of LLMs</Title>
-<Tagline>(Many thanks to "Chingis" for writing about this architecture. You can find his original paper [here](https://chingisoinar.medium.com/llms-explained-llama-and-its-architecture-part-1-716627e7754c))</Tagline>
+<Title>The Llama Architecture</Title>
+<Tagline>Meta's Series of LLMs</Tagline>
+
+(Many thanks to "Chingis" for writing about this architecture. You can find
+  his original paper [here](https://chingisoinar.medium.com/llms-explained-llama-and-its-architecture-part-1-716627e7754c).)
 
 ![Llama Final Architecture](/images/Llama.webp "Llama Final Architecture")
 
@@ -7,12 +10,12 @@ LLaMA is based on the transformer architecture; however, the authors leverage va
 
 Like GPT-3, LLaMA uses the Transformer's decoder-only architecture.
 
-The figure above shows the final LLaMA architecture on the high level. As seen, LLaMA resembles a transformer in a way that it's a stack of Transformer blocks. LLaMA is a decoder-only architecture.
+The figure above shows the final LLaMA architecture at a high level. As seen, LLaMA resembles a transformer in that it's a stack of Transformer blocks. LLaMA is a decoder-only architecture.
 
-RMSNorm performs normalization where each element of x is multiplied by the reciprocal of the square root of the mean of the squares (to avoid negative values) of elements of x, with a small number eps added for numerical stability. Then, it multiplies the normalized output with the learnable *self.weight.*
+RMSNorm performs normalization where each element of x is multiplied by the reciprocal of the square root of the mean of the squares (to avoid negative values) of elements of x, with a small number eps added for numerical stability. Then, it multiplies the normalized output with the learnable *self.weight*.
 
-![RMSNorm](/RMS.webp "RMSNorm")
+![RMSNorm](/images/RMS.webp "RMSNorm")
 
 The RMSNorm is applied to every input of each transformer sub-layer within the TransformerBlock, as shown in the figure above.
 
-They also introduce adding rotary positional embeddings (RoPE) at each layer of the network (instead of absolute positional embeddings) and replace ReLU activation with SwiGLU (with a dimension of 2/3*4d).
+They also introduce adding rotary positional embeddings (RoPE) at each layer of the network (instead of absolute positional embeddings) and replace ReLU activation with SwiGLU (with a dimension of 2/3 * 4d).

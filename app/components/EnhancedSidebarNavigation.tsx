@@ -223,6 +223,7 @@ const EnhancedSidebarNavigation: React.FC<EnhancedSidebarNavigationProps> = ({
         { name: 'SDArch', path: 'Image-Generation/SDArch' },
         { name: 'SDXLArch', path: 'Image-Generation/SDXLArch' },
         { name: 'Stable Diffusion Prompting', path: 'Image-Generation/Stable-Diffusion-Prompting' },
+        { name: 'Installing A1111', path: 'Image-Generation/InstallingA1111' },
       ],
     },
     {

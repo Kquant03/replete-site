@@ -1,11 +1,11 @@
-import MDXImage from '../../../../components/MDXImage'
 
-# Mistral: An Open Weights Model Published By Mistral.ai
+<Title>Mistral</Title>
+<Tagline>An Open Weights Model Published By Mistral.ai</Tagline>
 (many thanks to Nikhil Goel for providing this information, you can find his article [here](https://www.linkedin.com/pulse/mistral-7b-large-language-model-generative-ai-what-makes-goel-oauvc/))
 
 Mistral 7B is an open source LLM from Mistral.ai. Mistral has the following architecture:
 
-<MDXImage src="/mistral.webp" alt="Mistral Architecture" width={1271} height={1000} padding="15px" />
+![Mistral Architecture](/images/mistral.webp "Mistral Architecture")
 
 Mistral Architecture has following main components:
 
@@ -15,7 +15,7 @@ Mistral Architecture has following main components:
 
 Additionally, the most important point in the architecture image above - The blue box above indicates 'N' Transformer Decoder Layers and here 'N' = 32.
 
-<MDXImage src="/mistral2.webp" alt="DIMM" width={366} height={398} padding="15px" />
+![DIMM](/images/mistral2.webp "DIMM")
 
 With main architecture covered let's dive into the main architecture element that makes Mistral as among the best LLM.
 
@@ -23,14 +23,14 @@ Mistral is best due to the ability to handle very long text sequences and at the
 
 - Sliding Window Attention - This helps in handling long text sequences. Sliding window attention is a Self-Attention implementation concept that helps Mistral to consider only those tokens equal to length of sliding window parameter. So, if the sliding window is let's say W=3 then during self-attention only 3 tokens will be considered. This is a very powerful concept as this enables Mistral to handle longer text sequences. Now the question comes if sliding window = 3 then what happens to other tokens or long sequences, this is where the Transformer architecture and stacking of transformer (n_layers = 32) layers come. This layer enables Mistral to provide attention to all the tokens with each other in very long sequences. This will be clear from the image below.
 
-<MDXImage src="/mistral3.webp" alt="SWA" width={1372} height={536} padding="15px" />
+![SWA](/images/mistral3.webp "SWA")
 
 Now if you refer to the above image the sliding window attention is paying attention to 3 tokens (highlighted in yellow) as compared to Vanilla attention. Another important fact that highlights how all tokens are able to pay attention to each other even if there is a sliding window = 3 is no of layers, as increase in no of layers/ stacking of layers, the tokens in group pay attention to earlier layer tokens. Refer 'Effective Context Length'. This is KEY.
 
 - Rolling Buffer KV Cache - This helps in faster inference. As KV Cache is used to cache earlier Query Tokens as part of attention and this is KEY. Added in Mistral is Rolling Buffer which reduces memory. Mistral uses W=4 as Rolling Buffer and as soon as tokens >4 the past values are overwritten. Refer below image.
 
-<MDXImage src="/mistral4.webp" alt="Token Computation" width={1361} height={234} padding="15px" />
+![Token Computation](/images/mistral4.webp "Token Computation")
 
 These two primary concepts make Mistral handle large sequences with very fast inference time.
 
-## One thing to note is that in the v0.2 of Mistral 7B, there is no sliding window attention. It just has a native context of 32k, no fancy tricks to extend the context.
+### One thing to note is that in the v0.2 of Mistral 7B, there is no sliding window attention. It just has a native context of 32k, no fancy tricks to extend the context.
