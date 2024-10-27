@@ -29,6 +29,8 @@ export async function connectToMongoDB() {
   }
 
   // Set Node.js TLS settings
+  process.env.NODE_TLS_MIN_VERSION = 'TLSv1.2';
+  process.env.NODE_TLS_MAX_VERSION = 'TLSv1.3';
 
   const options: MongoClientOptions = {
     serverApi: {
