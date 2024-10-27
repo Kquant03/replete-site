@@ -30,6 +30,11 @@
   font-weight: 700;
   color: #ffffff;
   text-decoration: none;
+  transition: all transform 0.3s ease;
+}
+
+.logo:hover {
+  color:  #4cc9f0;
 }
 
 .logoContainer {

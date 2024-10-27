@@ -1,4 +1,4 @@
-import { MongoClient, MongoClientOptions, ServerApiVersion } from 'mongodb';
+import { MongoClient, MongoClientOptions } from 'mongodb';
 
 const uri = process.env.MONGODB_URI;
 const dbName = process.env.MONGODB_DB;
@@ -28,24 +28,25 @@ export async function connectToMongoDB() {
     throw new Error('MongoDB URI is not defined');
   }
 
-  // Set Node.js TLS settings
-  process.env.NODE_TLS_MIN_VERSION = 'TLSv1.2';
-  process.env.NODE_TLS_MAX_VERSION = 'TLSv1.3';
+  // Remove any existing TLS parameters from the URI
+  const baseUri = uri.split('?')[0];
+  const params = new URLSearchParams(uri.split('?')[1] || '');
+  
+  // Only keep essential parameters
+  params.set('retryWrites', 'true');
+  params.set('w', 'majority');
+  
+  const cleanUri = `${baseUri}?${params.toString()}`;
 
   const options: MongoClientOptions = {
-    serverApi: {
-      version: ServerApiVersion.v1,
-      strict: true,
-      deprecationErrors: true,
-    },
-    ssl: true,
-    tls: true,
-    tlsCAFile: undefined, // Let MongoDB driver handle CA certificates
-    connectTimeoutMS: 5000,
+    maxPoolSize: 1,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 5000,
+    // Let MongoDB driver handle all SSL/TLS settings automatically
   };
 
   try {
-    const client = new MongoClient(uri, options);
+    const client = new MongoClient(cleanUri, options);
     await client.connect();
     cachedClient = client;
     return client;
