@@ -13,26 +13,13 @@ async function connectToDatabase() {
   if (!uri) {
     throw new Error('MongoDB URI is not defined');
   }
-  
-  // Add options to handle TLS connection
-  const options = {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    ssl: true,
-    tls: true,
-    tlsAllowInvalidCertificates: false,
-    retryWrites: true,
-    minPoolSize: 1,
-    maxPoolSize: 10
-  };
 
   try {
-    // Ensure we're using modern TLS
-    const client = await MongoClient.connect(uri, options);
+    const client = await MongoClient.connect(uri);
     return client;
   } catch (error) {
     console.error('Failed to connect to MongoDB:', error);
-    throw new Error('Database connection failed');
+    throw error;
   }
 }
 
@@ -40,7 +27,7 @@ export async function POST(request: NextRequest) {
   let client;
   try {
     const { username, password } = await request.json();
-    
+
     client = await connectToDatabase();
     const db = client.db(dbName);
 
@@ -64,18 +51,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ userId: result.insertedId });
   } catch (error) {
     console.error('Registration error:', error);
-    
-    // Improved error handling
-    let errorMessage = 'An error occurred during registration';
-    if (error instanceof Error) {
-      // Log the detailed error but send a sanitized message to the client
-      console.error('Detailed error:', error);
-      errorMessage = error.message.includes('SSL') || error.message.includes('TLS') 
-        ? 'Database connection error. Please try again later.'
-        : 'Registration failed. Please try again.';
-    }
-    
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { error: 'An error occurred during registration' }, 
+      { status: 500 }
+    );
   } finally {
     if (client) {
       await client.close();

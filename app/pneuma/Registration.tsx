@@ -11,7 +11,9 @@ interface RegistrationProps {
 type ApiError = {
   response?: {
     status: number;
-    data?: unknown;
+    data?: {
+      error?: string;
+    };
   };
   message: string;
 };
@@ -49,19 +51,29 @@ const Registration: React.FC<RegistrationProps> = ({ onRegister, onClose, isVisi
     }
 
     try {
-      const response = await axios.post('/api/pneuma/register', { username, password });
-      const { userId } = response.data;
-      localStorage.setItem('userId', userId);
-      onRegister(userId);
+      const response = await axios.post('/api/pneuma/register', { 
+        username, 
+        password 
+      });
+      
+      if (response.data.userId) {
+        onRegister(response.data.userId);
+      } else {
+        setError('Registration failed. No user ID received.');
+      }
     } catch (error: unknown) {
       if (isApiError(error)) {
-        if (error.response?.status === 409) {
+        if (error.response?.data?.error) {
+          setError(error.response.data.error);
+        } else if (error.response?.status === 409) {
           setError('Username already taken. Please choose a different username.');
         } else {
           setError('Registration failed. Please try again.');
         }
+        console.error('Registration error details:', error.response?.data);
       } else {
         setError('An unexpected error occurred.');
+        console.error('Unexpected registration error:', error);
       }
     }
   };
