@@ -8,7 +8,7 @@ I call this a frankenMoE because in [my merges](https://huggingface.co/Kquant03/
 
 For these models, you want to prompt for what you want each model to be responsible for within the resulting MoE, like so:
 
-```
+```yaml
 base_model: alnrg2arg/test2_4
 gate_mode: hidden
 dtype: bfloat16
@@ -78,3 +78,4 @@ experts:
     negative_prompts:
     - "boring"
     - "lifeless"
+```

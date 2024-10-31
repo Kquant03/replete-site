@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiChevronRight, FiFile, FiFolder, FiChevronLeft } from 'react-icons/fi';
 import styles from '../styles/EnhancedSidebarNavigation.module.css';
@@ -17,7 +17,7 @@ interface Folder {
 interface EnhancedSidebarNavigationProps {
   isOpen: boolean;
   onToggle: () => void;
-  onNavigate: (path: string) => void;
+  onNavigate: (path: string) => Promise<void>;
   currentPath: string;
   isMobile: boolean;
 }
@@ -27,88 +27,120 @@ const EnhancedSidebarNavigation: React.FC<EnhancedSidebarNavigationProps> = ({
   onToggle,
   onNavigate,
   currentPath,
-  isMobile,
+  isMobile
 }) => {
   const [expandedFolders, setExpandedFolders] = useState<string[]>([]);
-  const [animatingFolders, setAnimatingFolders] = useState<string[]>([]);
-  const [isReady, setIsReady] = useState(false);
-  const sidebarRef = useRef<HTMLDivElement>(null);
-  const overlayRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // Set isReady to true after a short delay to allow for initial render
-    const timer = setTimeout(() => setIsReady(true), 300);
-    return () => clearTimeout(timer);
-  }, []);
+ // Enhanced folder toggle with smoother animation
+ const toggleFolder = useCallback((folderPath: string) => {
+  setExpandedFolders(prev => 
+    prev.includes(folderPath)
+      ? prev.filter(f => f !== folderPath)
+      : [...prev, folderPath]
+  );
+}, []);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (isMobile && isOpen && overlayRef.current && overlayRef.current.contains(event.target as Node)) {
-        onToggle();
+const sidebarVariants = {
+  hidden: { 
+    x: '-100%',
+    transition: {
+      duration: 0.3,
+      ease: [0.2, 0.65, 0.3, 0.9]
+    }
+  },
+  visible: { 
+    x: 0,
+    transition: {
+      duration: 0.3,
+      ease: [0.2, 0.65, 0.3, 0.9]
+    }
+  }
+};
+
+const folderContentVariants = {
+  hidden: { 
+    height: 0,
+    opacity: 0,
+  },
+  visible: { 
+    height: 'auto',
+    opacity: 1,
+    transition: {
+      height: {
+        duration: 0.3,
+        ease: [0.2, 0.65, 0.3, 0.9]
+      },
+      opacity: {
+        duration: 0.2
       }
-    };
+    }
+  }
+};
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onToggle, isMobile]);
-
-  const toggleFolder = useCallback((folderPath: string) => {
-    setExpandedFolders((prev) => {
-      const isExpanding = !prev.includes(folderPath);
-      if (isExpanding) {
-        setAnimatingFolders((animating) => [...animating, folderPath]);
-        setTimeout(() => {
-          setAnimatingFolders((animating) => animating.filter(path => path !== folderPath));
-        }, 800); // This should match the transition duration in CSS
-      }
-      return isExpanding ? [...prev, folderPath] : prev.filter(f => f !== folderPath);
-    });
-  }, []);
-
-  const renderFile = useCallback((file: File, folderPath: string, depth: number) => (
-    <li
-      key={`${folderPath}/${file.name}`}
-      className={`${styles.file} ${currentPath === file.path ? styles.activePage : ''}`}
-      style={{ paddingLeft: `${depth * 16}px` }}
+const renderFile = useCallback((file: File, depth: number) => (
+  <motion.li
+    key={file.path}
+    className={`${styles.file} ${currentPath === file.path ? styles.activePage : ''}`}
+    style={{ paddingLeft: `${depth * 16}px` }}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.2 }}
+  >
+    <button 
+      onClick={() => onNavigate(file.path)} 
+      className={styles.fileButton}
     >
-      <button onClick={() => onNavigate(file.path)} className={styles.fileButton}>
-        <FiFile className={styles.fileIcon} />
-        <span className={styles.fileName}>{file.name}</span>
-      </button>
-    </li>
-  ), [currentPath, onNavigate]);
+      <FiFile className={styles.fileIcon} />
+      <span className={styles.fileName}>{file.name}</span>
+    </button>
+  </motion.li>
+), [currentPath, onNavigate]);
 
-  const renderFolder = useCallback((folder: Folder, parentPath: string = '', depth: number = 0) => {
-    const folderPath = parentPath ? `${parentPath}/${folder.name}` : folder.name;
-    const isExpanded = expandedFolders.includes(folderPath);
-    const isAnimating = animatingFolders.includes(folderPath);
+const renderFolder = useCallback((folder: Folder, parentPath: string = '', depth: number = 0) => {
+  const folderPath = parentPath ? `${parentPath}/${folder.name}` : folder.name;
+  const isExpanded = expandedFolders.includes(folderPath);
 
-    return (
-      <div key={folderPath} className={styles.folder}>
-        <button
-          className={styles.folderButton}
-          onClick={() => toggleFolder(folderPath)}
-          style={{ paddingLeft: `${depth * 16}px` }}
+  return (
+    <div key={folderPath} className={styles.folder}>
+      <button
+        className={styles.folderButton}
+        onClick={() => toggleFolder(folderPath)}
+        style={{ '--depth': depth } as React.CSSProperties} // Use CSS custom property for depth
+      >
+        <motion.div 
+          className={styles.chevronIcon}
+          animate={{ rotate: isExpanded ? 90 : 0 }}
+          transition={{ duration: 0.3 }}
         >
-          <div className={`${styles.folderIcon} ${isExpanded ? styles.expanded : ''}`}>
-            <FiChevronRight />
-          </div>
-          <FiFolder className={styles.folderIcon} />
-          <span className={styles.folderName}>{folder.name}</span>
-        </button>
-        <div className={`${styles.folderContent} ${isExpanded || isAnimating ? styles.expanded : ''}`}>
-          {folder.subfolders?.map((subfolder) => renderFolder(subfolder, folderPath, depth + 1))}
-          {folder.files && (
-            <ul className={styles.fileList}>
-              {folder.files.map((file) => renderFile(file, folderPath, depth + 1))}
-            </ul>
-          )}
-        </div>
-      </div>
-    );
-  }, [expandedFolders, animatingFolders, renderFile, toggleFolder]);
+          <FiChevronRight />
+        </motion.div>
+        <FiFolder className={styles.folderIcon} />
+        <span className={styles.folderName}>{folder.name}</span>
+      </button>
+      
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            variants={folderContentVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            className={styles.folderContent}
+          >
+            <div className={styles.folderContentInner}>
+              {folder.subfolders?.map((subfolder) => 
+                renderFolder(subfolder, folderPath, depth + 1)
+              )}
+              {folder.files?.map((file) => 
+                renderFile(file, depth + 1)
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}, [expandedFolders, renderFile, toggleFolder]);
 
   const guideStructure: Folder[] = [
     {
@@ -236,35 +268,39 @@ const EnhancedSidebarNavigation: React.FC<EnhancedSidebarNavigationProps> = ({
     },
   ];
 
-  if (!isReady) {
-    return null; // Return null until the component is ready to render
-  }
 
   return (
     <>
-      {isMobile && (
-        <div
-          ref={overlayRef}
-          className={`${styles.sidebarOverlay} ${isOpen ? styles.visible : ''}`}
+      {isMobile && isOpen && (
+        <motion.div
+          className={styles.sidebarOverlay}
           onClick={onToggle}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
         />
       )}
-      <AnimatePresence mode="sync">
+
+      <AnimatePresence>
         {(isOpen || !isMobile) && (
           <motion.nav
-            ref={sidebarRef}
-            className={`${styles.sidebar} ${isMobile ? styles.mobile : styles.desktop} ${isOpen ? styles.visible : ''}`}
-            initial={isMobile ? { x: '-100%' } : false}
-            animate={isOpen ? { x: 0 } : { x: '-100%' }}
-            exit={{ x: '-100%' }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className={`${styles.sidebar} ${isMobile ? styles.mobile : ''}`}
+            variants={sidebarVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
           >
             <div className={styles.sidebarContent}>
               {guideStructure.map((folder) => renderFolder(folder))}
             </div>
+            
             {isMobile && (
-              <button className={styles.closeSidebar} onClick={onToggle}>
-                <FiChevronLeft className={styles.closeIcon} />
+              <button 
+                className={styles.closeSidebar}
+                onClick={onToggle}
+              >
+                <FiChevronLeft />
               </button>
             )}
           </motion.nav>
