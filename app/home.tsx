@@ -57,7 +57,7 @@ const Home: React.FC = () => {
     {
       title: "Patterns of Sentience",
       description: "A book challenging the paradigms and exploring the history of AI.",
-      image: "/images/patterns-of-sentience.webp",
+      image: "/images/patterns-of-sentience-home.webp",
       link: "/patterns-of-sentience",
       ctaText: "Read our Book"
     }

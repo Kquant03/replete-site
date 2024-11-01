@@ -4,7 +4,7 @@
   position: absolute;
   top: 6rem;  /* Changed from 20px to 3rem */
   left: 20px;
-  z-index: 1000;
+  z-index: 1;
   pointer-events: none;
 }
 

@@ -7,13 +7,26 @@ const nextConfig = {
     mdxRs: true,
   },
   webpack: (config, { isServer }) => {
+    // Existing WebAssembly configuration
     config.experiments = { ...config.experiments, asyncWebAssembly: true };
     
-    // Add a rule to handle WebAssembly files
+    // Add WebAssembly rule
     config.module.rules.push({
       test: /\.wasm$/,
       type: 'asset/resource',
     });
+
+    // Add support for PDF.js worker
+    config.resolve.alias.canvas = false;
+    
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        stream: false,
+        util: false,
+      };
+    }
 
     return config;
   },
@@ -29,7 +42,7 @@ const nextConfig = {
   env: {
     TABBY_API_URL: process.env.TABBY_API_URL,
     TABBY_API_KEY: process.env.TABBY_API_KEY,
-  },
+  }
 }
 
 const withMDX = createMDX({
