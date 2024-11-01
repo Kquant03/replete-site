@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     authors: ['Stanley Sebastian'],
     images: [
       {
-        url: '/images/groq-og.webp',
+        url: '/images/groq-desktop.webp',
         width: 1200,
         height: 630,
         alt: 'Groq LPU Technology - Ultra-fast LLM Inference'
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Free and Fast LLMs with Groq®',
     description: 'Experience 1-2ms per token inference with Groq LPU™. Free API access available.',
-    images: ['/images/groq-og.webp']
+    images: ['/images/groq-desktop.webp']
   },
 
   alternates: {
