@@ -1050,225 +1050,220 @@ return (
       }
     `}</style>
     
-    <DisclaimerModal 
-      isVisible={showDisclaimer} 
-      onAccept={handleAcceptDisclaimer}
-    />
-    
+    {/* Main content - will animate in with disclosure */}
     <AnimatePresence mode="wait">
-      {!showDisclaimer && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-          className={`${styles.pneumaContainer} ${isMobile ? styles.mobileView : ''}`}
-          ref={contentRef}
-        >
-    {/* Left Sidebar */}
-    <div className={`${styles.leftSidebar} ${leftSidebarVisible ? styles.visible : ''}`}>
-      <div className={styles.sidebarHeader}>
-        <h2 className={styles.sidebarTitle}>Conversations</h2>
-        <button 
-          onClick={() => setLeftSidebarVisible(false)} 
-          className={styles.sidebarCloseButton}
-          aria-label="Close conversations sidebar"
-        >
-          <FiX />
-        </button>
-      </div>
-      <div className={styles.sidebarContent}>
-      {isAuthenticated ? (
-        <>
-          <button onClick={startNewConversation} className={styles.newConversationButton}>
-            <FiPlus /> New Conversation
-          </button>
-          <ul className={styles.conversationList}>
-              {conversations.map((conv) => (
-                <li 
-                  key={conv._id ?? conv.id} 
-                  className={`${styles.conversationItem} ${(conv._id ?? conv.id) === currentConversationId ? styles.active : ''}`}
-                  onClick={() => conv._id && loadConversation(conv._id)}
-                >
-                  <span className={styles.conversationTitle} title={conv.title}>
-                    {conv.title || 'Untitled Conversation'}
-                  </span>
-                  <div className={styles.conversationItemActions} onClick={e => e.stopPropagation()}>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedConversation(conv);
-                      setShowEditTitleModal(true);
-                    }}
-                    className={styles.actionButton}
-                    aria-label="Rename conversation"
-                  >
-                    <FiEdit2 />
-                  </button>
-                  <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedConversation(conv);
-                    setShowDeleteModal(true);
-                  }}
-                  className={styles.deleteConversationButton}
-                  aria-label="Delete conversation"
-                >
-                  <FiTrash2 />
-                </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <div className={styles.accountButtonsContainer}>
-              <button onClick={handleLogout} className={styles.logoutButton}>
-                <FiLogOut />
-                <span>Logout</span>
-              </button>
-              <button onClick={() => setShowDeleteAccount(true)} className={styles.deleteAccountButton}>
-                <FiTrash2 />
-                <span>Delete Account</span>
-              </button>
-            </div>
-          </>
-        ) : (
-          <div className={styles.loginPromptCard}>
-            <p className={styles.loginPromptText}>
-              Login to save conversations and access them again later
-            </p>
-            <div className={styles.loginPromptButtons}>
-              <button onClick={() => setShowLoginPrompt(true)} 
-                      className={styles.loginButton}>Login</button>
-              <button onClick={() => setShowRegistration(true)} 
-                      className={styles.registerButton}>Register</button>
-            </div>
+      <motion.div
+        key="main-content"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: hasAcceptedDisclaimer ? 1 : 0.2 }}
+        transition={{ 
+          duration: 0.4,
+          // Add 2 second delay only for new users who haven't accepted disclaimer
+          delay: hasAcceptedDisclaimer ? 0.1 : 2.0
+        }}
+        className={`${styles.pneumaContainer} ${isMobile ? styles.mobileView : ''}`}
+        ref={contentRef}
+      >
+        {/* Left Sidebar */}
+        <div className={`${styles.leftSidebar} ${leftSidebarVisible ? styles.visible : ''}`}>
+          <div className={styles.sidebarHeader}>
+            <h2 className={styles.sidebarTitle}>Conversations</h2>
+            <button 
+              onClick={() => setLeftSidebarVisible(false)} 
+              className={styles.sidebarCloseButton}
+              aria-label="Close conversations sidebar"
+            >
+              <FiX />
+            </button>
           </div>
-        )}
-      </div>
-    </div>
-
-    {/* Main Chat Container */}
-    <div className={styles.chatContainer}>
-      {/* Header Section */}
-      <div className={styles.chatHeader}>
-        {/* Sidebar Toggle Buttons */}
-        <button
-          onClick={() => setLeftSidebarVisible(prev => !prev)}
-          className={`${styles.sidebarToggle} ${styles.leftToggle}`}
-          aria-label="Toggle conversations"
-        >
-          <FiMessageSquare />
-        </button>
-        <button
-          onClick={() => setRightSidebarVisible(prev => !prev)}
-          className={`${styles.sidebarToggle} ${styles.rightToggle}`}
-          aria-label="Toggle settings"
-        >
-          <FiSettings />
-        </button>
-      </div>
-
-      {/* Title Section */}
-      <div className={styles.titleContainer}>
-        <h1 className={styles.title}>Pneuma</h1>
-        <p className={styles.subtitle}>
-          Engage in meaningful conversations with Pneuma, your AI companion designed for genuine interaction and insightful dialogue.
-        </p>
-      </div>
-
-      {/* Error Display */}
-      {error && (
-        <div className={styles.errorContainer}>
-          <p className={styles.errorMessage}>{error}</p>
-          <button onClick={() => setError(null)} className={styles.errorDismiss}>
-            <FiX />
-          </button>
+          <div className={styles.sidebarContent}>
+            {isAuthenticated ? (
+              <>
+                <button onClick={startNewConversation} className={styles.newConversationButton}>
+                  <FiPlus /> New Conversation
+                </button>
+                <ul className={styles.conversationList}>
+                  {conversations.map((conv) => (
+                    <li 
+                      key={conv._id ?? conv.id} 
+                      className={`${styles.conversationItem} ${(conv._id ?? conv.id) === currentConversationId ? styles.active : ''}`}
+                      onClick={() => conv._id && loadConversation(conv._id)}
+                    >
+                      <span className={styles.conversationTitle} title={conv.title}>
+                        {conv.title || 'Untitled Conversation'}
+                      </span>
+                      <div className={styles.conversationItemActions} onClick={e => e.stopPropagation()}>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedConversation(conv);
+                            setShowEditTitleModal(true);
+                          }}
+                          className={styles.actionButton}
+                          aria-label="Rename conversation"
+                        >
+                          <FiEdit2 />
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedConversation(conv);
+                            setShowDeleteModal(true);
+                          }}
+                          className={styles.deleteConversationButton}
+                          aria-label="Delete conversation"
+                        >
+                          <FiTrash2 />
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <div className={styles.accountButtonsContainer}>
+                  <button onClick={handleLogout} className={styles.logoutButton}>
+                    <FiLogOut />
+                    <span>Logout</span>
+                  </button>
+                  <button onClick={() => setShowDeleteAccount(true)} className={styles.deleteAccountButton}>
+                    <FiTrash2 />
+                    <span>Delete Account</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className={styles.loginPromptCard}>
+                <p className={styles.loginPromptText}>
+                  Login to save conversations and access them again later
+                </p>
+                <div className={styles.loginPromptButtons}>
+                  <button onClick={() => setShowLoginPrompt(true)} className={styles.loginButton}>
+                    Login
+                  </button>
+                  <button onClick={() => setShowRegistration(true)} className={styles.registerButton}>
+                    Register
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      )}
 
-      {/* Chat Window */}
-      <div className={styles.chatWindow} ref={chatWindowRef}>
-        {chat.messages.map((message) => (
-          <div 
-            key={message.id}
-            className={`${styles.messageWrapper} ${styles[`message${message.status.charAt(0).toUpperCase() + message.status.slice(1)}`]}`}
-            data-message-id={message.id}
-            data-status={message.status}
-          >
-            <MessageItem
-              message={message}
-              userName={userName}
-              editingMessageId={editingMessageId}
-              handleEdit={handleEdit}
-              handleCopy={handleCopy}
-              copiedMessageId={copiedMessageId}
-              editedContent={editedContent}
-              handleSaveEdit={handleSaveEdit}
-              handleCancelEdit={handleCancelEdit}
+        {/* Main Chat Container */}
+        <div className={styles.chatContainer}>
+          {/* Header Section */}
+          <div className={styles.chatHeader}>
+            <button
+              onClick={() => setLeftSidebarVisible(prev => !prev)}
+              className={`${styles.sidebarToggle} ${styles.leftToggle}`}
+              aria-label="Toggle conversations"
+            >
+              <FiMessageSquare />
+            </button>
+            <button
+              onClick={() => setRightSidebarVisible(prev => !prev)}
+              className={`${styles.sidebarToggle} ${styles.rightToggle}`}
+              aria-label="Toggle settings"
+            >
+              <FiSettings />
+            </button>
+          </div>
+
+          {/* Title Section */}
+          <div className={styles.titleContainer}>
+            <h1 className={styles.title}>Pneuma</h1>
+            <p className={styles.subtitle}>
+              Engage in meaningful conversations with Pneuma, your AI companion designed for genuine interaction and insightful dialogue.
+            </p>
+          </div>
+
+          {/* Error Display */}
+          {error && (
+            <div className={styles.errorMessage}>{error}</div>
+          )}
+
+          {/* Chat Window */}
+          <div className={styles.chatWindow} ref={chatWindowRef}>
+            {chat.messages.map((message) => (
+              <div 
+                key={message.id}
+                className={`${styles.messageWrapper}`}
+                data-status={message.status}
+              >
+                <MessageItem
+                  message={message}
+                  userName={userName}
+                  editingMessageId={editingMessageId}
+                  handleEdit={handleEdit}
+                  handleCopy={handleCopy}
+                  copiedMessageId={copiedMessageId}
+                  editedContent={editedContent}
+                  handleSaveEdit={handleSaveEdit}
+                  handleCancelEdit={handleCancelEdit}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Thinking Indicator */}
+          <div className={styles.thinkingIndicatorContainer}>
+            <ThinkingIndicator 
+              isVisible={isLoading || isProcessing} 
+              queuePosition={queuePosition} 
             />
           </div>
-        ))}
-      </div>
 
-      {/* Thinking Indicator */}
-      <div className={styles.thinkingIndicatorContainer}>
-        <ThinkingIndicator 
-          isVisible={isLoading || isProcessing} 
-          queuePosition={queuePosition} 
-        />
-      </div>
+          {/* Input Form */}
+          <form onSubmit={handleSubmit} className={styles.inputForm}>
+            <div className={styles.inputWrapper}>
+              <textarea
+                ref={textareaRef}
+                placeholder={`${userName}, type your message...`}
+                value={inputValue}
+                onChange={handleTextAreaChange}
+                onKeyDown={handleKeyDown}
+                className={styles.inputField}
+                rows={1}
+                disabled={isLoading}
+              />
+              <button 
+                type="submit" 
+                className={styles.sendButton} 
+                disabled={isLoading || !inputValue.trim()}
+                aria-label="Send message"
+              >
+                <FiSend />
+              </button>
+            </div>
+          </form>
 
-      {/* Input Form */}
-      <form onSubmit={handleSubmit} className={styles.inputForm}>
-        <div className={styles.inputWrapper}>
-          <textarea
-            ref={textareaRef}
-            placeholder={`${userName}, type your message...`}
-            value={inputValue}
-            onChange={handleTextAreaChange}
-            onKeyDown={handleKeyDown}
-            className={styles.inputField}
-            rows={1}
-            disabled={isLoading}
-          />
-          <button 
-            type="submit" 
-            className={styles.sendButton} 
-            disabled={isLoading || !inputValue.trim()}
-            aria-label="Send message"
-          >
-            <FiSend />
-          </button>
+          {/* Action Buttons */}
+          <div className={styles.buttonContainer}>
+            <button 
+              onClick={deleteLastTurn} 
+              className={styles.secondaryButton}
+              disabled={chat.messages.length < 2 || isLoading}
+            >
+              <FiTrash2 /> Delete Last Turn
+            </button>
+            <button 
+              onClick={regenerateResponse} 
+              className={styles.secondaryButton}
+              disabled={chat.messages.length === 0 || isLoading}
+            >
+              <FiRefreshCw /> Regenerate
+            </button>
+            <button 
+              onClick={startNewConversation} 
+              className={styles.secondaryButton}
+              disabled={isLoading}
+            >
+              New Chat
+            </button>
+          </div>
         </div>
-      </form>
 
-      {/* Action Buttons */}
-      <div className={styles.buttonContainer}>
-        <button 
-          onClick={deleteLastTurn} 
-          className={styles.secondaryButton}
-          disabled={chat.messages.length < 2 || isLoading}
-        >
-          <FiTrash2 /> Delete Last Turn
-        </button>
-        <button 
-          onClick={regenerateResponse} 
-          className={styles.secondaryButton}
-          disabled={chat.messages.length === 0 || isLoading}
-        >
-          <FiRefreshCw /> Regenerate
-        </button>
-        <button 
-          onClick={startNewConversation} 
-          className={styles.secondaryButton}
-          disabled={isLoading}
-        >
-          New Chat
-        </button>
-      </div>
-    </div>
-
-    {/* Right Sidebar */}
-    <div className={`${styles.rightSidebar} ${rightSidebarVisible ? styles.visible : ''}`}>
+        {/* Right Sidebar */}
+        <div className={`${styles.rightSidebar} ${rightSidebarVisible ? styles.visible : ''}`}>
       <div className={styles.sidebarHeader}>
         <h2 className={styles.sidebarTitle}>Settings</h2>
         <button 
@@ -1336,25 +1331,37 @@ return (
           );
         })}
       </div>
-    </div>
+      </div>
+      </motion.div>
+    </AnimatePresence>
 
-{/* Modals */}
-<Login 
+{/* Modals - rendered outside the main content AnimatePresence */}
+      <DisclaimerModal 
+      isVisible={showDisclaimer} 
+      onAccept={handleAcceptDisclaimer}
+      // Pass in whether this is a new user so the modal can animate appropriately
+      isNewUser={!hasAcceptedDisclaimer}
+    />
+
+    <Login 
       onLogin={handleLogin} 
       onClose={() => setShowLoginPrompt(false)} 
       isVisible={showLoginPrompt}
     />
+
     <Registration 
       onRegister={handleRegister} 
       onClose={() => setShowRegistration(false)} 
       isVisible={showRegistration}
     />
+
     <DeleteAccount 
       userId={userId}
       onDeleteAccount={handleDeleteAccount}
       onClose={() => setShowDeleteAccount(false)}
       isVisible={showDeleteAccount}
     />
+
     <EditTitleModal
       isVisible={showEditTitleModal}
       currentTitle={selectedConversation?.title || ''}
@@ -1366,6 +1373,7 @@ return (
         }
       }}
     />
+
     <DeleteConfirmationModal
       isVisible={showDeleteModal}
       title={selectedConversation?.title || ''}
@@ -1377,11 +1385,8 @@ return (
         }
       }}
     />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
+  </div>
+);
 };
 
 export default PneumaContent;

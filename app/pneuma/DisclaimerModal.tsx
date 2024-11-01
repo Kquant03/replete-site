@@ -6,9 +6,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface DisclaimerModalProps {
   isVisible: boolean;
   onAccept: () => void;
+  isNewUser: boolean;
 }
 
-const DisclaimerModal: React.FC<DisclaimerModalProps> = ({ isVisible, onAccept }) => {
+const DisclaimerModal: React.FC<DisclaimerModalProps> = ({ 
+  isVisible, 
+  onAccept,
+  isNewUser 
+}) => {
   const [privacyChecked, setPrivacyChecked] = useState(false);
   const [termsChecked, setTermsChecked] = useState(false);
   const [modelChecked, setModelChecked] = useState(false);
@@ -30,20 +35,20 @@ const DisclaimerModal: React.FC<DisclaimerModalProps> = ({ isVisible, onAccept }
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
-          style={{ 
-            position: 'fixed',
-            background: 'var(--background)',  // Use your app's background color
-            zIndex: 1000 
+          transition={{ 
+            duration: 0.4,
+            // For new users, immediate animation. For returning users, no delay needed
+            delay: isNewUser ? 0 : 0
           }}
         >
           <motion.div 
             className={styles.modalContent}
-            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.98 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ 
               duration: 0.4,
+              delay: isNewUser ? 0.2 : 0, // Slight delay for content entry for new users
               ease: [0.4, 0, 0.2, 1],
             }}
           >
@@ -208,7 +213,7 @@ const DisclaimerModal: React.FC<DisclaimerModalProps> = ({ isVisible, onAccept }
                       </div>
                       <span>
                         I understand that Pneuma is an uncensored AI model and I will exercise appropriate discretion 
-                        in my interactions. I am responsible for the content of my conversations and understand that 
+                        in my interactions. I am solely responsible for the content of my conversations and understand that 
                         the AI will respond naturally to the topics I introduce.
                       </span>
                     </label>
@@ -230,7 +235,7 @@ const DisclaimerModal: React.FC<DisclaimerModalProps> = ({ isVisible, onAccept }
                     <span>Accept & Continue</span>
                   </button>
                   <p className={styles.note}>
-                    By clicking &quot;Accept & Continue&quot;, you acknowledge that you have read and understood the above documents.
+                    By clicking &quot;Accept & Continue&quot;, you acknowledge that you have read and understood the above documents, and agree to the above statements.
                   </p>
                 </motion.div>
               </motion.div>
