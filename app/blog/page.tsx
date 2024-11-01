@@ -172,7 +172,7 @@ export default function Blog() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
           >
-            AI Engineering Blog
+            Replete Blog
           </motion.h1>
           <motion.p 
             className={styles.subheading}

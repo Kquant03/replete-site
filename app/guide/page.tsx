@@ -26,9 +26,9 @@ export const metadata: Metadata = {
     'AI development',
     'machine learning tutorials'
   ],
-  authors: [{ name: 'AI Development Community' }],
-  creator: 'AI Development Community',
-  publisher: 'AI Development Community',
+  authors: [{ name: 'Replete AI' }],
+  creator: 'Replete AI',
+  publisher: 'Replete AI',
   formatDetection: {
     email: false,
     address: false,
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Comprehensive AI Guide | Modern Machine Learning Technologies',
     description: 'In-depth guide covering cutting-edge AI technologies: LLMs, Stable Diffusion, model architectures, training, and implementations.',
-    url: 'https://yourdomain.com/guide',
+    url: 'https://repleteai.com/guide',
     siteName: 'AI Development Guide',
     locale: 'en_US',
     type: 'website',
@@ -85,9 +85,9 @@ export const metadata: Metadata = {
 
   // Alternative languages
   alternates: {
-    canonical: 'https://yourdomain.com/guide',
+    canonical: 'https://repleteai.com/guide',
     languages: {
-      'en-US': 'https://yourdomain.com/guide',
+      'en-US': 'https://repleteai.com/guide',
       // Add other language versions if available
     },
   },
