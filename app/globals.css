@@ -14,6 +14,46 @@
   --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Global scrollbar styling */
+* {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: var(--secondary-color) rgba(76, 201, 240, 0.1);
+}
+
+/* Webkit scrollbar styles */
+::-webkit-scrollbar {
+  width: 6px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(76, 201, 240, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, 
+    var(--secondary-color) 0%, 
+    var(--primary-color) 100%);
+  border-radius: 3px;
+  border: none;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, 
+    var(--secondary-color) 20%, 
+    var(--primary-color) 80%);
+}
+
+/* Edge and IE */
+@supports (-ms-overflow-style: none) {
+  * {
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+  }
+}
+
 html,
 body {
   padding: 0;
@@ -80,7 +120,7 @@ button {
   min-height: 100vh;
 }
 
-/* styles/globals.css */
+/* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -97,4 +137,110 @@ body.modal-open {
   overflow: hidden;
   position: fixed;
   width: 100%;
+}
+
+/* Global Sidebar Styles */
+.globalSidebar {
+  position: fixed;
+  top: 3.5rem;
+  left: 0;
+  height: calc(100vh - 3.5rem);
+  width: 400px;
+  background: linear-gradient(145deg, var(--background-color), rgba(139, 69, 255, 0.1));
+  z-index: 1000;
+  overflow-y: overlay;
+  transition: transform 0.3s ease-in-out;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  border-right: 1px solid rgba(76, 201, 240, 0.1);
+}
+
+.globalSidebar.visible {
+  transform: translateX(0);
+}
+
+.sidebarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(76, 201, 240, 0.3);
+  margin-bottom: 1rem;
+}
+
+.sidebarTitle {
+  font-family: var(--font-primary);
+  font-size: 1.2rem;
+  background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin: 0;
+}
+
+.sidebarCloseButton {
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  padding: 0.5rem;
+  height: 40px;
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebarCloseButton:hover {
+  color: var(--accent-color);
+}
+
+.sidebarToggle {
+  position: fixed;
+  top: 4.5rem;
+  left: 1rem;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, 
+    rgba(76, 201, 240, 0.4), 
+    rgba(139, 69, 255, 0.4));
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 999;
+  padding: 0;
+}
+
+.sidebarToggle:hover {
+  background: linear-gradient(135deg, 
+    rgba(76, 201, 240, 0.6), 
+    rgba(139, 69, 255, 0.6));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.sidebarContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  padding-top: 0.5rem;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+  .globalSidebar {
+    width: 100vw;
+  }
+  
+  .sidebarToggle {
+    top: 4rem;
+    left: 0.5rem;
+  }
 }

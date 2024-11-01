@@ -1,0 +1,202 @@
+/* app/blog/tensordock/BlogPost.module.css */
+.blogPost {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: #ffffff;
+    margin-top: 60px;
+  }
+  
+  .heroSection {
+    text-align: center;
+    margin-bottom: 4rem;
+    padding: 4rem 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .heroSection::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, #4cc9f0, #7f5af0, #3a0ca3);
+    opacity: 0.1;
+    z-index: 1;
+  }
+  
+  .title {
+    font-size: 4rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(45deg, #4cc9f0, #7f5af0, #3a0ca3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
+    z-index: 2;
+  }
+  
+  .metadata {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
+    position: relative;
+    z-index: 2;
+  }
+  
+  .content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .introduction {
+    font-size: 1.4rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 3rem;
+  }
+  
+  .section {
+    margin-bottom: 4rem;
+  }
+  
+  .section h2 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(45deg, #4cc9f0, #7f5af0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .featureGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+  
+  .featureCard, .hardwareCard, .step, .tip {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .featureCard h3, .hardwareCard h3, .step h3, .tip h3 {
+    color: #4cc9f0;
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+  }
+  
+  .hardwareGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0;
+  }
+  
+  .specList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .specList li {
+    margin: 0.5rem 0;
+    color: rgba(255, 255, 255, 0.8);
+    padding-left: 1.5rem;
+    position: relative;
+  }
+  
+  .specList li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #4cc9f0;
+  }
+  
+  .steps {
+    display: grid;
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+  
+  .step {
+    position: relative;
+    padding: 2rem;
+  }
+  
+  .tipsContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+  
+  .communityText {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .ctaContainer {
+    text-align: center;
+    margin-top: 2rem;
+  }
+  
+  .ctaButton {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background: linear-gradient(45deg, #4cc9f0, #7f5af0, #3a0ca3);
+    border-radius: 8px;
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    transition: transform 0.3s ease;
+  }
+  
+  .ctaButton:hover {
+    transform: translateY(-2px);
+  }
+  
+  @media (max-width: 768px) {
+    .blogPost {
+      padding: 1rem;
+    }
+  
+    .title {
+      font-size: 2.5rem;
+    }
+  
+    .heroSection {
+      padding: 2rem 1rem;
+      margin-bottom: 2rem;
+    }
+  
+    .section h2 {
+      font-size: 2rem;
+    }
+  
+    .featureGrid, .hardwareGrid {
+      grid-template-columns: 1fr;
+    }
+  
+    .tipsContainer {
+      grid-template-columns: 1fr;
+    }
+  
+    .step {
+      padding: 1.5rem;
+    }
+  }

@@ -14,6 +14,7 @@ const DisclaimerModal: React.FC<DisclaimerModalProps> = ({
   onAccept,
   isNewUser 
 }) => {
+  const [isAnimated, setIsAnimated] = useState(false);
   const [privacyChecked, setPrivacyChecked] = useState(false);
   const [termsChecked, setTermsChecked] = useState(false);
   const [modelChecked, setModelChecked] = useState(false);
@@ -36,20 +37,24 @@ const DisclaimerModal: React.FC<DisclaimerModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ 
-            duration: 0.4,
-            // For new users, immediate animation. For returning users, no delay needed
-            delay: isNewUser ? 0 : 0
+            duration: 0.4, 
+            ease: 'easeOut',
+            delay: isNewUser ? 0 : 0.1 // Slight delay for returning users
           }}
         >
           <motion.div 
-            className={styles.modalContent}
+            className={`${styles.modalContent} ${isAnimated ? styles.animated : ''}`}
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ 
-              duration: 0.4,
-              delay: isNewUser ? 0.2 : 0, // Slight delay for content entry for new users
+              duration: isNewUser ? 0.4 : 0.3, // Faster animation for returning users
               ease: [0.4, 0, 0.2, 1],
+              delay: isNewUser ? 0.2 : 0
+            }}
+            onAnimationComplete={() => {
+              // Add slight delay before enabling scrollbar
+              setTimeout(() => setIsAnimated(true), isNewUser ? 100 : 50);
             }}
           >
             <div className={styles.modalInner}>
@@ -58,7 +63,7 @@ const DisclaimerModal: React.FC<DisclaimerModalProps> = ({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ 
-                  delay: 0.2,
+                  delay: isNewUser ? 0.3 : 0.1,
                   duration: 0.4,
                   ease: 'easeOut'
                 }}
@@ -68,7 +73,7 @@ const DisclaimerModal: React.FC<DisclaimerModalProps> = ({
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{
-                    delay: 0.3,
+                    delay: isNewUser ? 0.4 : 0.2,
                     duration: 0.4,
                     ease: [0.4, 0, 0.2, 1]
                   }}
@@ -78,7 +83,7 @@ const DisclaimerModal: React.FC<DisclaimerModalProps> = ({
                 <motion.h2
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4, duration: 0.4 }}
+                  transition={{ delay: isNewUser ? 0.5 : 0.3, duration: 0.4 }}
                 >
                   Welcome to Pneuma
                 </motion.h2>

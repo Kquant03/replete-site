@@ -57,7 +57,7 @@
   height: 100vh;
   width: 100vw; /* Default to full viewport width */
   background: linear-gradient(145deg, rgb(11, 0, 21), rgb(30, 10, 60));
-  z-index: 1000;
+  z-index: 1;
   overflow-y: scroll;
   transition: transform 0.3s ease-in-out;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
@@ -209,11 +209,35 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  overflow-y: auto;
   max-height: calc(100vh - 12rem);
   padding: 0.5rem;
-  width: 100%; /* Ensure full width */
-  min-width: 200px; /* Minimum width for readability */
+  overflow-y: overlay;
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #4cc9f0 rgba(76, 201, 240, 0.1);
+}
+
+.conversationList::-webkit-scrollbar {
+  width: 6px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.conversationList::-webkit-scrollbar-track {
+  background: rgba(76, 201, 240, 0.1);
+  border-radius: 3px;
+}
+
+.conversationList::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #4cc9f0 0%, #4361EE 100%);
+  border-radius: 3px;
+  border: none;
+}
+
+.conversationList::-webkit-scrollbar-thumb:vertical:hover,
+.conversationList::-webkit-scrollbar-thumb:vertical:active {
+  opacity: 1;
 }
 
 .conversationTitle {
@@ -355,7 +379,6 @@
   background: linear-gradient(145deg, rgba(11, 0, 21, 0.6), rgba(30, 10, 60, 0.6));
   border-radius: 20px;
   padding: 2rem;
-  overflow-y: auto;
   margin-bottom: 1rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(10px);
@@ -363,6 +386,11 @@
   flex-direction: column;
   position: relative;
   transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  overflow-y: overlay;
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #4cc9f0 rgba(76, 201, 240, 0.1);
 }
 
 .chatWindow[data-animation-state="fadeOut"] {
@@ -377,17 +405,26 @@
 }
 
 .chatWindow::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
 .chatWindow::-webkit-scrollbar-track {
-  background: rgba(11, 0, 21, 0.2);
-  border-radius: 4px;
+  background: rgba(76, 201, 240, 0.1);
+  border-radius: 3px;
+  margin: 1rem 0;
 }
 
 .chatWindow::-webkit-scrollbar-thumb {
-  background-color: rgba(76, 201, 240, 0.5);
-  border-radius: 4px;
+  background: linear-gradient(180deg, #4cc9f0 0%, #4361EE 100%);
+  border-radius: 3px;
+  border: none;
+}
+
+.chatWindow::-webkit-scrollbar-thumb:vertical:hover,
+.chatWindow::-webkit-scrollbar-thumb:vertical:active {
+  opacity: 1;
 }
 
 /* Message Styling */

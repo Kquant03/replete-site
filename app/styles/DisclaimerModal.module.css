@@ -28,8 +28,39 @@
 
 .modalInner {
   padding: 2rem;
-  overflow-y: auto;
   max-height: calc(90vh - 7rem);
+  overflow-y: auto;
+  
+  /* Hide scrollbar initially */
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Hide scrollbar initially */
+.modalInner::-webkit-scrollbar {
+  display: none;
+}
+
+/* After animation, show scrollbar when needed */
+.modalContent.animated .modalInner {
+  scrollbar-width: thin;
+  scrollbar-color: #4cc9f0 rgba(76, 201, 240, 0.1);
+}
+
+.modalContent.animated .modalInner::-webkit-scrollbar {
+  display: block;
+  width: 6px;
+}
+
+.modalContent.animated .modalInner::-webkit-scrollbar-track {
+  background: rgba(76, 201, 240, 0.1);
+  border-radius: 3px;
+}
+
+.modalContent.animated .modalInner::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #4cc9f0 0%, #4361EE 100%);
+  border-radius: 3px;
+  border: none;
 }
 
 .modalHeader {

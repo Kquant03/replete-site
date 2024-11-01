@@ -1,0 +1,184 @@
+/* app/blog/groq/BlogPost.module.css */
+.blogPost {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: #ffffff;
+  }
+  
+  .heroSection {
+    text-align: center;
+    margin-bottom: 4rem;
+    padding: 4rem 0;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+    margin-top: 60px;
+  }
+  
+  .heroSection::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, #4cc9f0, #7f5af0, #3a0ca3);
+    opacity: 0.1;
+    z-index: 1;
+  }
+  
+  .title {
+    font-size: 4rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(45deg, #4cc9f0, #7f5af0, #3a0ca3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    position: relative;
+    z-index: 2;
+  }
+  
+  .metadata {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
+    position: relative;
+    z-index: 2;
+  }
+  
+  .content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .intro {
+    font-size: 1.4rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 3rem;
+  }
+  
+  .section {
+    margin-bottom: 4rem;
+  }
+  
+  .section h2 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(45deg, #4cc9f0, #7f5af0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  .features, .bestPractices {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 1.5rem;
+  }
+  
+  .features li, .bestPractices li {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .steps {
+    list-style: decimal;
+    padding-left: 1.5rem;
+    margin: 1.5rem 0;
+  }
+  
+  .steps li {
+    margin-bottom: 1rem;
+    color: rgba(255, 255, 255, 0.9);
+  }
+  
+  .codeBlock {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 1.5rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .codeBlock code, .codeBlock pre {
+    font-family: 'Fira Code', monospace;
+    color: #4cc9f0;
+  }
+  
+  .performanceGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+  }
+  
+  .perfCard {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .perfCard h3 {
+    color: #4cc9f0;
+    margin-bottom: 0.5rem;
+  }
+  
+  .perfCard p {
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+  
+  .callToAction {
+    text-align: center;
+    margin-top: 4rem;
+    padding: 2rem;
+  }
+  
+  .ctaButton {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background: linear-gradient(45deg, #4cc9f0, #7f5af0);
+    border-radius: 8px;
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    transition: transform 0.3s ease;
+  }
+  
+  .ctaButton:hover {
+    transform: translateY(-2px);
+  }
+  
+  @media (max-width: 768px) {
+    .blogPost {
+      padding: 1rem;
+    }
+  
+    .title {
+      font-size: 2.5rem;
+    }
+  
+    .heroSection {
+      padding: 2rem 1rem;
+      margin-bottom: 2rem;
+    }
+  
+    .section h2 {
+      font-size: 2rem;
+    }
+  
+    .performanceGrid {
+      grid-template-columns: 1fr;
+    }
+  }
