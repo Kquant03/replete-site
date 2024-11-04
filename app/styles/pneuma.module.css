@@ -147,7 +147,7 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  z-index: 999;
+  z-index: 0;
   padding: 0;
 }
 
@@ -185,7 +185,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1002;
+  z-index: 1;
 }
 
 .sidebarCloseButton svg {
