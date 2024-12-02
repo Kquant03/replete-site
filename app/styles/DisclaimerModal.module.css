@@ -10,7 +10,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 0;
   backdrop-filter: blur(2px);
   padding: 2rem;
 }
@@ -226,7 +226,7 @@
   gap: 0.25rem;
   transition: all 0.2s;
   position: relative;
-  z-index: 2;
+  z-index: 0;
   pointer-events: auto;
 }
 
