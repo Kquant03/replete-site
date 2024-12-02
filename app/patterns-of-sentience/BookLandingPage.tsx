@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { ChevronRight } from 'lucide-react';
@@ -8,31 +8,15 @@ import dynamic from 'next/dynamic';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import styles from './PatternsOfSentience.module.css';
 
-// Dynamically import both preview components with loading states
+// Dynamically import components without loading states
 const CustomPDFViewer = dynamic(
   () => import('./CustomPDFViewer').then(mod => mod.default),
-  { 
-    ssr: false,
-    loading: () => (
-      <div className={styles.loadingIndicator}>
-        <div className={styles.loadingSpinner} />
-        Loading viewer...
-      </div>
-    )
-  }
+  { ssr: false }
 );
 
 const MobilePreview = dynamic(
   () => import('./MobilePreview').then(mod => mod.default),
-  { 
-    ssr: false,
-    loading: () => (
-      <div className={styles.loadingIndicator}>
-        <div className={styles.loadingSpinner} />
-        Loading preview...
-      </div>
-    )
-  }
+  { ssr: false }
 );
 
 export const BookLandingPage = () => {
@@ -174,18 +158,11 @@ export const BookLandingPage = () => {
             exit="exit"
             variants={previewVariants}
           >
-            <Suspense fallback={
-              <div className={styles.loadingIndicator}>
-                <div className={styles.loadingSpinner} />
-                Loading preview...
-              </div>
-            }>
-              {isMobile ? (
-                <MobilePreview onClose={() => setShowPreview(false)} />
-              ) : (
-                <CustomPDFViewer onClose={() => setShowPreview(false)} />
-              )}
-            </Suspense>
+            {isMobile ? (
+              <MobilePreview onClose={() => setShowPreview(false)} />
+            ) : (
+              <CustomPDFViewer onClose={() => setShowPreview(false)} />
+            )}
           </motion.div>
         )}
       </AnimatePresence>

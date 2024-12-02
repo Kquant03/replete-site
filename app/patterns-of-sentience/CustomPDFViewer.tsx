@@ -3,18 +3,25 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Download, X } from 'lucide-react';
-import { Document, Page } from 'react-pdf';
-import { pdfjs } from 'react-pdf';
+import dynamic from 'next/dynamic';
 import styles from './PatternsOfSentience.module.css';
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+// Dynamically import the PDFViewer component
+const PDFViewer = dynamic(
+  () => import('./PDFViewer').then((module) => module.default),
+  {
+    ssr: false,
+    loading: () => (
+      <div className={styles.loadingIndicator}>
+        <div className={styles.loadingSpinner} />
+        Loading PDF viewer...
+      </div>
+    ),
+  }
+);
 
 interface CustomPDFViewerProps {
   onClose: () => void;
-}
-
-interface PDFDocumentLoadSuccess {
-  numPages: number;
 }
 
 const CustomPDFViewer: React.FC<CustomPDFViewerProps> = ({ onClose }) => {
@@ -23,22 +30,9 @@ const CustomPDFViewer: React.FC<CustomPDFViewerProps> = ({ onClose }) => {
   const [scale, setScale] = useState<number>(1);
   const [error, setError] = useState<string | null>(null);
 
-  function onDocumentLoadSuccess({ numPages }: PDFDocumentLoadSuccess): void {
-    setNumPages(numPages);
-    setError(null);
-  }
-
-  function onDocumentLoadError(error: Error): void {
-    console.error('Error loading PDF:', error);
+  const handleError = (error: Error) => {
+    console.error('PDF Error:', error);
     setError('Failed to load PDF. Please try again later.');
-  }
-
-  const pageProps = {
-    pageNumber,
-    scale,
-    className: styles.pdfPage,
-    renderTextLayer: false,
-    renderAnnotationLayer: false,
   };
 
   if (error) {
@@ -112,19 +106,13 @@ const CustomPDFViewer: React.FC<CustomPDFViewerProps> = ({ onClose }) => {
         </div>
 
         <div className={styles.pdfDocument}>
-          <Document
+          <PDFViewer
             file="/Preview.pdf"
-            onLoadSuccess={onDocumentLoadSuccess}
-            onLoadError={onDocumentLoadError}
-            loading={
-              <div className={styles.loadingIndicator}>
-                <div className={styles.loadingSpinner} />
-                Loading PDF...
-              </div>
-            }
-          >
-            <Page {...pageProps} />
-          </Document>
+            pageNumber={pageNumber}
+            scale={scale}
+            onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+            onError={handleError}
+          />
         </div>
       </div>
     </div>

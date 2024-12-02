@@ -16,8 +16,20 @@ const nextConfig = {
       type: 'asset/resource',
     });
 
+    // Add rule for pdf.worker.js
+    if (!isServer) {
+      config.module.rules.push({
+        test: /pdf\.worker\.(min\.)?js/,
+        type: 'asset/resource',
+        generator: {
+          filename: 'static/worker/[hash][ext][query]'
+        }
+      });
+    }
+
     // Add support for PDF.js worker
     config.resolve.alias.canvas = false;
+    config.resolve.alias.encoding = false;
     
     if (!isServer) {
       config.resolve.fallback = {
@@ -25,6 +37,14 @@ const nextConfig = {
         fs: false,
         stream: false,
         util: false,
+        crypto: false,
+        buffer: false,
+        events: false,
+        path: false,
+        zlib: false,
+        http: false,
+        https: false,
+        url: false,
       };
     }
 
