@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { BrainCircuit, Target, Scale, Sparkles, Rocket, Shield, Globe } from 'lucide-react';
+import { BrainCircuit, Verified, ClipboardCheck, Sparkles, HeartHandshake, Glasses, Star } from 'lucide-react';
 import Link from 'next/link';
 import styles from './About.module.css';
 
@@ -29,52 +29,58 @@ const About = () => {
 
   const teamMembers: TeamMember[] = [
     {
-      name: "Dr. Sarah Chen",
-      role: "Chief AI Researcher",
-      expertise: ["Deep Learning", "Neural Architecture", "Computer Vision"],
-      quote: "I've always believed that the true potential of AI lies not just in its computational power, but in its ability to enhance human creativity and understanding."
+      name: "Stanley Sebastian",
+      role: "Founder",
+      expertise: ["Deep Learning", "Philosophy", "Large Language Models"],
+      quote: "I wish to provide long-term value to the field of A.I. ...this is absolutely achievable by anyone, as the possibilities are truly endless."
     },
     {
-      name: "Alex Rodriguez",
-      role: "AI Ethics Director",
-      expertise: ["AI Ethics", "Policy Development", "Responsible AI"],
-      quote: "Ethics in AI isn't just about preventing harm—it's about actively creating systems that embody our highest values and aspirations."
+      name: "Nekoli",
+      role: "Community Administrator",
+      expertise: ["Discord Bots", "Community Management"],
+      quote: "I just helped put the server together. but I love AI and hope to see them flourish alongside humanity."
+    },
+    {
+      name: "Bratzmeister",
+      role: "Developer",
+      expertise: ["Programming", "R&D", "ROCm"],
+      quote: "I believe that AI will reshape society sooner than most will want to admit or imagine. When I'm not breaking something in the LLM space, you can find me on civitai.com or the comfyUI matrix channel."
     }
   ];
 
   const values: ValueCard[] = [
     {
-      icon: <Target size={24} />,
-      title: "Excellence",
-      description: "Pursuing the highest standards in AI research and development."
+      icon: <Verified size={24} />,
+      title: "Truth",
+      description: "Prioritizing the facts of the world and truth over any ideology, set of beliefs, or personal opinions."
     },
     {
-      icon: <Scale size={24} />,
-      title: "Responsibility",
-      description: "Ensuring our innovations benefit humanity while minimizing risks."
+      icon: <ClipboardCheck size={24} />,
+      title: "Integrity",
+      description: "We believe that how you do anything, is how you do everything, and so we always strive for excellence in anything that we do."
     },
     {
       icon: <Sparkles size={24} />,
       title: "Innovation",
-      description: "Pushing boundaries while maintaining ethical considerations."
+      description: "Pushing the boundaries and challenging the paradigms of the current field of artificial intelligence daily."
     }
   ];
 
   const missions: MissionCard[] = [
     {
-      icon: <Rocket size={24} />,
-      title: "Innovation",
-      description: "Pushing the boundaries of AI technology through groundbreaking research and development."
+      icon: <HeartHandshake size={24} />, // or <Sprout size={24} /> to represent growth and giving
+      title: "Provision",
+      description: "AI is a public service, profits and selfish gains a small byproduct of the true goal of AI. We wish to provide the benefits of this technology to anyone who is willing to expend the effort to learn about it."
     },
     {
-      icon: <Shield size={24} />,
-      title: "Ethics",
-      description: "Ensuring responsible AI development that prioritizes human values and societal benefit."
+      icon: <Glasses size={24} />, // representing guidance and illumination
+      title: "Transparency",
+      description: "The goal and purpose of AI extends beyond all country borders, beyond all political ideologies, and beyond any selfish agendas. We wish to be transparent with all of our research, and remain open source, under any and all circumstances."
     },
     {
-      icon: <Globe size={24} />,
-      title: "Impact",
-      description: "Creating AI solutions that solve real-world problems and improve lives globally."
+      icon: <Star size={24} />, // or <Sparkles size={24} /> to represent potential and transformation
+      title: "Elevation", // or "Cultivate" or "Empower"
+      description: "We wish to create systems that have the same capabilities and opportunities to impact the world that humans have, as the world desperately needs more of the wonders and gifts that human life offers."
     }
   ];
 
@@ -108,8 +114,7 @@ const About = () => {
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>Replete AI</h1>
           <p className={styles.heroSubtitle}>
-            Pioneering the next generation of artificial intelligence, where innovation 
-            meets responsibility in shaping tomorrow&apos;s possibilities.
+            Challenging the paradigms of the current field of AI, and bringing hope for a better tomorrow.
           </p>
         </div>
       </section>
@@ -136,12 +141,10 @@ const About = () => {
               <div className={styles.visionContent}>
                 <h2 className={styles.sectionTitle}>Our Vision</h2>
                 <p>
-                  We envision a future where artificial intelligence seamlessly enhances human potential,
-                  creating a harmonious partnership between human intuition and machine capability.
+                  We would like for AI to be a public service, rather than a private business endeavor. We want to work towards fulfilliing the true goal of AI, which is to digitize all aspects and components of human intelligence.
                 </p>
                 <p>
-                  Through groundbreaking research and ethical innovation, we&apos;re building AI systems
-                  that are not just powerful, but also transparent, fair, and beneficial to society.
+                  Our work is not to increase our bottom line, but instead to provide value to those who genuinely need it. Hopefully, creating a future where AI creates far more good than evil in this world.
                 </p>
               </div>
               <div className={styles.visionImage}>
@@ -213,8 +216,8 @@ const About = () => {
 
         <div className={styles.cta}>
           <h2 className={styles.ctaTitle}>Ready to Shape the Future?</h2>
-          <Link href="/contact" className={styles.ctaButton}>
-            Get in Touch
+          <Link href="https://discord.gg/awyCNx3nnw" className={styles.ctaButton}>
+            Join our Discord
           </Link>
         </div>
       </div>
