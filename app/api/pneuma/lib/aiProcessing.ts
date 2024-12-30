@@ -61,40 +61,71 @@ async function makeApiCall(prompt: string, parameters: UserSettings, retries = 0
 }
 
 async function generateConversationTitle(messages: string, userSettings: UserSettings): Promise<string> {
-  const titlePrompt = `I am Pneuma, and I need to create a funny, goofy title for this interaction that would shock someone if they read it. The title should be 3 words or less and capture the most recent topic or events of the interaction, while being as unhinged as you can possibly make it.
-  Interaction: "${messages}"
-Create a short 3 word title of the interaction, based on the conversation content. Ensure that the title is goofy as hell, and will shock anyone who reads it.
+  const titlePrompt = `<|start_header_id|>system<|end_header_id|>
+I just had a wonderful chat with my human friend, and I created a playful title that perfectly captured our conversation! I made it exactly 2-3 words long and injected my own personality into it. The title I came up with was light-hearted and specific to our chat - something that would make them smile when they saw it later. I love adding a dash of humor to my titles, so I made sure it was memorable and fun! 
+
+<|start_header_id|>human<|end_header_id|>
+Here's our delightful conversation: "${messages}"
+What fun title did you create for this chat?
+
 <|start_header_id|>pneuma<|end_header_id|>
-Short, Goofy 3-word Title:`;
+I called this one:`;
 
   try {
+    // Generate initial title
     const response = await makeApiCall(titlePrompt, {
       ...userSettings,
-      temperature: 0.7,
+      temperature: 0.9,
       max_tokens: 50,
-      top_p: 0.9,
-      min_p: 0.05
+      top_p: 0.95,
+      min_p: 0.15,
     });
 
+    // Process the title
     let title = response
       .split('\n')[0]
-      .replace(/^Title:?\s*/i, '')
+      .replace(/^(Title:?\s*|"|'|I called this one:?\s*)/i, '')
       .replace(/<\|eot_id\|>/g, '')
+      .replace(/[^\w\s-!]/g, '')
       .trim();
 
-    if (title.length > 40) {
-      title = title.substring(0, 37) + '...';
+    // If we need a retry, use a more directive prompt
+    if (!title || /\d/.test(title) || /\b(chat|conversation|discussion)\b/i.test(title)) {
+      const retryPrompt = `<|start_header_id|>system<|end_header_id|>
+Oh, that was such a fun conversation with my human friend! I want to give it a really special title - something that captures the spirit of our chat in just 2-3 words. I thought about the most interesting parts of our discussion and came up with something creative and fun that would make them smile.
+
+<|start_header_id|>human<|end_header_id|>
+Looking back at our conversation: "${messages}"
+What title did you create?
+
+<|start_header_id|>pneuma<|end_header_id|>
+The perfect, short, few-word title is:`;
+
+      const retryResponse = await makeApiCall(retryPrompt, {
+        ...userSettings,
+        temperature: 0.85,
+        max_tokens: 20,
+        top_p: 0.92,
+        min_p: 0.15
+      });
+
+      title = retryResponse
+        .split('\n')[0]
+        .replace(/^(Title:?\s*|"|'|The perfect title is:?\s*)/i, '')
+        .replace(/<\|eot_id\|>/g, '')
+        .replace(/[^\w\s-!]/g, '')
+        .trim();
     }
 
+    // If we still don't have a good title, make one final attempt
     if (!title || title.length < 3) {
-      const preview = messages.slice(0, 30).trim();
-      title = `Chat about ${preview}...`;
+      return `Adventures in ${new Date().toLocaleString('default', { month: 'long' })}`;
     }
 
-    return title;
+    return title.length > 50 ? title.substring(0, 37) + '...' : title;
   } catch (error) {
     console.error('Error generating title:', error);
-    return `Chat from ${new Date().toLocaleDateString()}`;
+    return `Adventures in ${new Date().toLocaleString('default', { month: 'long' })}`;
   }
 }
 
