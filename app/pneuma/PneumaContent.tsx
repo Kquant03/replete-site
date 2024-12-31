@@ -1084,40 +1084,40 @@ return (
                 </button>
                 <ul className={styles.conversationList}>
                 {conversations.map((conv) => (
-                <li 
-                  key={conv._id ?? conv.id} 
-                  className={`${styles.conversationItem} ${(conv._id ?? conv.id) === currentConversationId ? styles.active : ''}`}
-                  onClick={() => conv._id && loadConversation(conv._id)}
-                >
-                  <div className={styles.conversationTitle} data-full-title={conv.title}>
-                    {conv.title || 'Untitled Conversation'}
-                  </div>
-                  <div className={styles.conversationItemActions} onClick={e => e.stopPropagation()}>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedConversation(conv);
-                        setShowEditTitleModal(true);
-                      }}
-                      className={styles.actionButton}
-                      aria-label="Rename conversation"
-                    >
-                      <FiEdit2 />
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedConversation(conv);
-                        setShowDeleteModal(true);
-                      }}
-                      className={styles.deleteConversationButton}
-                      aria-label="Delete conversation"
-                    >
-                      <FiTrash2 />
-                    </button>
-                  </div>
-                </li>
-              ))}
+      <li 
+        key={conv._id ?? conv.id} 
+        className={`${styles.conversationItem} ${(conv._id ?? conv.id) === currentConversationId ? styles.active : ''}`}
+        onClick={() => conv._id && loadConversation(conv._id)}
+      >
+        <div className={styles.conversationTitle} data-full-title={conv.title}>
+          {conv.title || 'Untitled Conversation'}
+        </div>
+        <div className={styles.conversationItemActions} onClick={e => e.stopPropagation()}>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedConversation(conv);
+              setShowEditTitleModal(true);
+            }}
+            className={styles.actionButton}
+            aria-label="Rename conversation"
+          >
+            <FiEdit2 />
+          </button>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedConversation(conv);
+              setShowDeleteModal(true);
+            }}
+            className={styles.deleteConversationButton}
+            aria-label="Delete conversation"
+          >
+            <FiTrash2 />
+          </button>
+        </div>
+      </li>
+    ))}
                 </ul>
                 <div className={styles.accountButtonsContainer}>
                   <button onClick={handleLogout} className={styles.logoutButton}>

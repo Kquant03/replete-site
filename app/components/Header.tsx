@@ -51,26 +51,6 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar = () => {} }) => {
     router.push(href);
   };
 
-  const headerVariants = {
-    hidden: { opacity: 0, y: -20 },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { 
-        duration: 0.3,
-        ease: 'easeOut'
-      } 
-    },
-    exit: { 
-      opacity: 0, 
-      y: -20, 
-      transition: { 
-        duration: 0.2,
-        ease: 'easeIn'
-      } 
-    }
-  };
-
   const navItems = [
     { name: 'Pneuma', href: '/pneuma' },
     { name: 'Guide', href: '/guide' },
@@ -86,105 +66,96 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar = () => {} }) => {
   ];
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.header 
-        key={pathname}
-        className={styles.header}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        variants={headerVariants}
-      >
-        <div className={styles.headerContent}>
-          <div className={styles.logoContainer}>
-            <Link href="/" onClick={handleNavigation("/")} className={styles.logo}>
-              <Image src="/logo.png" alt="Replete AI Logo" width={40} height={40} />
-              <span className={styles.heading}>Replete AI</span>
-            </Link>
-            {isGuidePage && isMobile && (
-              <button 
-                className={styles.guideButton}
-                onClick={toggleSidebar}
-              >
-                <FaBook />
-              </button>
-            )}
-            {isHomePage && (
-              <button onClick={toggleMute} className={styles.muteButton} aria-label="Toggle sound">
-                {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
-              </button>
-            )}
-          </div>
-          <nav className={styles.nav}>
-            {navItems.map((item) => (
-              <div key={item.name}>
-                <Link href={item.href} onClick={handleNavigation(item.href)}>{item.name}</Link>
+    <header className={styles.header}>
+      <div className={styles.headerContent}>
+        <div className={styles.logoContainer}>
+          <Link href="/" onClick={handleNavigation("/")} className={styles.logo}>
+            <Image src="/logo.png" alt="Replete AI Logo" width={40} height={40} />
+            <span className={styles.heading}>Replete AI</span>
+          </Link>
+          {isGuidePage && isMobile && (
+            <button 
+              className={styles.guideButton}
+              onClick={toggleSidebar}
+            >
+              <FaBook />
+            </button>
+          )}
+          {isHomePage && (
+            <button onClick={toggleMute} className={styles.muteButton} aria-label="Toggle sound">
+              {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
+            </button>
+          )}
+        </div>
+        <nav className={styles.nav}>
+          {navItems.map((item) => (
+            <div key={item.name}>
+              <Link href={item.href} onClick={handleNavigation(item.href)}>{item.name}</Link>
+            </div>
+          ))}
+        </nav>
+        <div className={styles.rightSection}>
+          <div className={styles.socialLinks}>
+            {socialLinks.map((link, index) => (
+              <div key={index}>
+                <Link href={link.href} onClick={handleNavigation(link.href)}>
+                  {link.icon ? <link.icon /> : 
+                    <Image src={link.src!} alt={link.alt!} width={24} height={24} />
+                  }
+                </Link>
               </div>
             ))}
-          </nav>
-          <div className={styles.rightSection}>
-            <div className={styles.socialLinks}>
-              {socialLinks.map((link, index) => (
-                <div key={index}>
-                  <Link href={link.href} onClick={handleNavigation(link.href)}>
-                    {link.icon ? <link.icon /> : 
-                      <Image src={link.src!} alt={link.alt!} width={24} height={24} />
-                    }
-                  </Link>
-                </div>
-              ))}
-            </div>
-            <button 
-              className={`${styles.menuToggle} ${isMenuOpen ? styles.menuOpen : ''}`}
-              onClick={toggleMenu}
-              aria-label="Toggle menu"
-            >
-              <span></span>
-            </button>
           </div>
+          <button 
+            className={`${styles.menuToggle} ${isMenuOpen ? styles.menuOpen : ''}`}
+            onClick={toggleMenu}
+            aria-label="Toggle menu"
+          >
+            <span></span>
+          </button>
         </div>
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.div 
-              className={styles.mobileNav}
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3, ease: 'easeInOut' }}
-            >
-              {navItems.map((item) => (
-                <motion.div key={item.name} whileTap={{ scale: 0.95 }}>
-                  <Link href={item.href} onClick={handleNavigation(item.href)}>{item.name}</Link>
-                </motion.div>
-              ))}
-              <div className={styles.mobileOnlyLinks}>
-                <div className={styles.socialLinks}>
-                  {socialLinks.map((link, index) => (
-                    <motion.div key={index} whileTap={{ scale: 0.95 }}>
-                      <Link href={link.href} onClick={handleNavigation(link.href)}>
-                        {link.icon ? <link.icon /> : 
-                          <Image src={link.src!} alt={link.alt!} width={24} height={24} />
-                        }
-                      </Link>
-                    </motion.div>
-                  ))}
-                </div>
-                {isHomePage && (
-                  <motion.button 
-                    whileTap={{ scale: 0.95 }}
-                    onClick={toggleMute} 
-                    className={`${styles.muteButton} ${styles.mobileMuteButton}`} 
-                    aria-label="Toggle sound"
-                  >
-                    {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
-                  </motion.button>
-                )}
+      </div>
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div 
+            className={styles.mobileNav}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+          >
+            {navItems.map((item) => (
+              <motion.div key={item.name} whileTap={{ scale: 0.95 }}>
+                <Link href={item.href} onClick={handleNavigation(item.href)}>{item.name}</Link>
+              </motion.div>
+            ))}
+            <div className={styles.mobileOnlyLinks}>
+              <div className={styles.socialLinks}>
+                {socialLinks.map((link, index) => (
+                  <motion.div key={index} whileTap={{ scale: 0.95 }}>
+                    <Link href={link.href} onClick={handleNavigation(link.href)}>
+                      {link.icon ? <link.icon /> : 
+                        <Image src={link.src!} alt={link.alt!} width={24} height={24} />
+                      }
+                    </Link>
+                  </motion.div>
+                ))}
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.header>
-    </AnimatePresence>
+              {isHomePage && (
+                <motion.button 
+                  whileTap={{ scale: 0.95 }}
+                  onClick={toggleMute} 
+                  className={`${styles.muteButton} ${styles.mobileMuteButton}`} 
+                  aria-label="Toggle sound"
+                >
+                  {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
+                </motion.button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
   );
 };
 

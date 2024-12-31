@@ -135,6 +135,9 @@
 
 .file {
   margin-bottom: 0.4rem;
+  list-style: none;
+  position: relative;
+  padding: 0;
 }
 
 .fileButton {

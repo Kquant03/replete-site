@@ -114,6 +114,44 @@ const MDXImage: React.FC<{ src?: string; alt?: string; title?: string }> = ({ sr
     return () => window.removeEventListener('resize', checkMobile);
   }, [src]);
 
+  const parseTitle = (titleText: string) => {
+    if (!titleText) return null;
+
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    const parts: (string | JSX.Element)[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = linkRegex.exec(titleText)) !== null) {
+      // Add text before the link
+      if (match.index > lastIndex) {
+        parts.push(titleText.slice(lastIndex, match.index));
+      }
+
+      // Add the link
+      parts.push(
+        <a 
+          key={match.index} 
+          href={match[2]}
+          className={styles.link}
+          target="_blank" 
+          rel="noopener noreferrer"
+        >
+          {match[1]}
+        </a>
+      );
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text after the last link
+    if (lastIndex < titleText.length) {
+      parts.push(titleText.slice(lastIndex));
+    }
+
+    return parts.length > 0 ? parts : titleText;
+  };
+
   return (
     <div className={styles.imageContainer}>
       <div 
@@ -135,7 +173,7 @@ const MDXImage: React.FC<{ src?: string; alt?: string; title?: string }> = ({ sr
           </div>
         )}
       </div>
-      {title && <p className={styles.imageCaption}>{title}</p>}
+      {title && <p className={styles.imageCaption}>{parseTitle(title)}</p>}
       
       {isMobile && (
         <ImageLightbox

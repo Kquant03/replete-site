@@ -9,6 +9,7 @@ interface MDXImageProps {
   height: number;
   padding?: string;
   priority?: boolean;
+  title?: string;  // For the markdown title/caption
 }
 
 const MDXImage: React.FC<MDXImageProps> = ({ 
@@ -17,9 +18,49 @@ const MDXImage: React.FC<MDXImageProps> = ({
   width, 
   height, 
   padding = '0',
-  priority = false
+  priority = false,
+  title
 }) => {
   const [isLoading, setIsLoading] = useState(true);
+
+  // Function to parse markdown-style links in the title
+  const parseTitle = (titleText: string) => {
+    if (!titleText) return null;
+
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    const parts: (string | JSX.Element)[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = linkRegex.exec(titleText)) !== null) {
+      // Add text before the link
+      if (match.index > lastIndex) {
+        parts.push(titleText.slice(lastIndex, match.index));
+      }
+
+      // Add the link
+      parts.push(
+        <a 
+          key={match.index} 
+          href={match[2]}
+          className={styles.captionLink}
+          target="_blank" 
+          rel="noopener noreferrer"
+        >
+          {match[1]}
+        </a>
+      );
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text after the last link
+    if (lastIndex < titleText.length) {
+      parts.push(titleText.slice(lastIndex));
+    }
+
+    return parts;
+  };
 
   return (
     <div style={{ padding }} className={styles.imageContainer}>
@@ -38,6 +79,11 @@ const MDXImage: React.FC<MDXImageProps> = ({
         onLoadingComplete={() => setIsLoading(false)}
         className={`${styles.image} ${isLoading ? styles.loading : styles.loaded}`}
       />
+      {title && (
+        <figcaption className={styles.caption}>
+          {parseTitle(title)}
+        </figcaption>
+      )}
     </div>
   );
 };

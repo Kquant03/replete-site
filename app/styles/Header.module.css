@@ -9,6 +9,10 @@
   background-color: rgba(11, 0, 21, 0.8);
   height: 60px;
   backdrop-filter: blur(10px);
+  isolation: isolate;
+  transform-style: flat;
+  will-change: transform;
+  pointer-events: auto;
 }
 
 .headerContent {
