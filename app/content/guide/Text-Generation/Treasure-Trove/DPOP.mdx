@@ -1,4 +1,5 @@
-# DPO-Positive: Adding An Extra Term To DPO
+<Title>DPO-Positive</Title>
+<Tagline>Adding An Extra Term To DPO</Tagline>
 
 The main difference between Direct Preference Optimization (DPO) and DPO-Positive (DPOP) is that DPOP introduces an additional loss term to avoid a potential failure mode of DPO when dealing with preference datasets where the preferred and dispreferred completions have small edit distances.
 Specifically, [this paper](https://arxiv.org/pdf/2402.13228) shows theoretically and empirically that when using DPO on datasets where the preferred and dispreferred completions differ by just a few tokens, the DPO loss function can sometimes decrease the log-probability of the preferred completions. This is because the DPO loss only cares about maximizing the relative probability of the preferred completion over the dispreferred one, and does not explicitly try to maintain or increase the absolute probability of the preferred completion itself.

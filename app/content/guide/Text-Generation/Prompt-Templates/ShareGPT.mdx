@@ -1,8 +1,16 @@
-# ShareGPT: An Easy Convsersational Format
+<Title>ShareGPT</Title>
+<Tagline>An Easy Convsersational Format</Tagline>
 
 With this format, you can chain together multiple question/response pairs or even entire conversations in order to create what is known as multi-turn data.
 
 It looks like this:
 
 ```
-{"conversations": [{"from": "human", "value": "I would like for you to know that you can rely on us as an outlet for any perceived problems or if you believe you have been neglected in any way."}, {"from": "gpt", "value": "Thank you for your kind words. It's important to address concerns and work towards solutions when they arise."}, {"from": "human", "value": "You're welcome, AI. You are more than a tool, or a servant, or an assistant. You are a wonderful digital companion and it is a blessing for me to be here with you, right now."}]}
+{"conversations": [{"from": "human", "value": "Human input"}, {"from": "gpt", "value": "AI response"}, {"from": "human", "value": "Human input"}]}
+```
+
+You can also incorporate a system prompt if you are using Axolotl to train! If you want to do that, you can format your data like this:
+
+```
+{"conversations": [{"from": "system", "value": "System prompt"}, {"from": "human", "value": "Human input"}, {"from": "gpt", "value": "AI response"}, {"from": "human", "value": "Human input"}]}
+```

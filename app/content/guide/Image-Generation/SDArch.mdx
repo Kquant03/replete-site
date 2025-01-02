@@ -1,6 +1,5 @@
-import Image from 'next/image'
-
-# Stable Diffusion Architecture: A Brief Overview
+<Title>Stable Diffusion Architecture</Title>
+<Tagline>A Brief Overview of Stable Diffusion</Tagline>
 
 (many thanks to Steins for presenting a clear explanation of the legacy SD 1.5 architecture! You can find his article [here](https://medium.com/@steinsfu/stable-diffusion-clearly-explained-ed008044e07e)!)
 
@@ -10,10 +9,4 @@ Diffusion is the action of either adding or removing noise from an image, using 
 
 With Stable Diffusion, it generates random latent noise, and then diffuses it, removing the noise from the image while applying conditioning to the U-Net in order to turn the latent noise into an image representing your text prompt.
 
-<Image 
-  src="/SDARCH2.webp" 
-  alt="Stable Diffusion Architecture" 
-  width={700} 
-  height={523} 
-  style={{padding: '15px'}}
-/>
+![Stable Diffusion Architecture](/images/SDARCH2.webp "Stable Diffusion Architecture")

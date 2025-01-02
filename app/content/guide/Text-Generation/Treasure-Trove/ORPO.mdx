@@ -1,10 +1,9 @@
-import Image from 'next/image'
-
-# ORPO: Monolithic Odds Ratio Preference Optimization
+<Title>ORPO</Title>
+<Tagline>Monolithic Odds Ratio Preference Optimization</Tagline>
 
 ORPO (Odds Ratio Preference Optimization) is a novel algorithm for aligning language models with human preferences without the need for a separate reference model or reward model. It works by incorporating an odds ratio-based penalty term into the standard negative log-likelihood loss during supervised fine-tuning. This penalty term increases the likelihood of generating the preferred (chosen) responses relative to the non-preferred (rejected) responses. Essentially, ORPO simultaneously adapts the language model to the desired domain via supervised fine-tuning, while also discouraging it from generating undesirable outputs by penalizing the rejected response styles. This monolithic approach streamlines the preference alignment process into a single fine-tuning stage without requiring multi-stage training or additional models.
 
-<Image src="/ORPO.webp" alt="Fine-Tuning Pipeline" width={2000} height={1000} padding="15px"/>
+![Odds Ratio Preference Optimization](/images/ORPO.webp "Fine-Tuning Pipeline")
 
 This is the pipeline for ORPO when compared to the original SFT+DPO pipeline.
 

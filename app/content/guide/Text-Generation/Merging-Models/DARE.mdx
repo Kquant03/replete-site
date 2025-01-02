@@ -1,4 +1,5 @@
-# DARE: An Augmented TIES Merge method
+<Title>DARE</Title>
+<Tagline>An Augmented TIES Merge method</Tagline>
 
 Similar to TIES, it sparsifies the task vectors to reduce inference. The only difference is that DARE using random pruning with a novel rescaling to better match performance of the original model.
 
@@ -8,7 +9,7 @@ So like a model with high GSM8k and another model with high TruthfulQA can be me
 
 A typical script will look like so:
 
-```
+```yaml
 models:
   - model: mistralai/Mistral-7B-v0.1
     # No parameters necessary for base model

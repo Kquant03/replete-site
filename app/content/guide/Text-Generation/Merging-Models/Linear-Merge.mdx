@@ -1,10 +1,11 @@
-# Linear Merging: The Original Merge
+<Title>Linear Merging</Title>
+<Tagline>The Original Merge</Tagline>
 
 In a Linear-Merge, you simply specify how much weight each model has on the resulting output...almost like merging models on Stable Diffusion.
 
 A typical script will look like so:
 
-```
+```yaml
 models:
   - model: psmathur/orca_mini_v3_13b
     parameters:
@@ -17,3 +18,4 @@ models:
       weight: 0.5
 merge_method: linear
 dtype: float16
+```

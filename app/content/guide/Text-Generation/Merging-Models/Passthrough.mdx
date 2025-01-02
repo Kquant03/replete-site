@@ -1,10 +1,11 @@
-# Passthrough: A Frankenmerge
+<Title>Passthrough</Title>
+<Tagline>A Frankenmerge</Tagline>
 
 The passthrough method differs significantly from the previous ones. By concatenating layers from different LLMs, it can produce models with an exotic number of parameters (e.g., 9B with two 7B parameter models). These models are often referred to as "frankenmerges" or "Frankenstein models" by the community.
 
 A typical script looks like so:
 
-```
+```yaml
 slices:
   - sources:
     - model: OpenPipe/mistral-ft-optimized-1218
@@ -14,3 +15,4 @@ slices:
       layer_range: [24, 32]
 merge_method: passthrough
 dtype: bfloat16
+```

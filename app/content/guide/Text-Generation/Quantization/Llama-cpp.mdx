@@ -1,7 +1,8 @@
-# Llama.cpp: A cheap method for inferencing with LLms
+<Title>Llama.cpp</Title>
+<Tagline>A cheap method for inferencing with LLms</Tagline>
 
-With llama.cpp, you will be using GGUF files (formerly GGML). I would recommend not offloading to gpu, but instead finding models that you can tick the `no mmap` box for. Loading the model completely into RAM 24/7 will be much more reliable in terms of speed.
+With llama.cpp, you will be using GGUF files (formerly GGML). The best part about llama-cpp is that you can use both RAM (CPU) and VRAM (GPU) at the same time by offloading layers to the GPU during inference time.
 
 To quantize in GGUF, [the github repo is fairly simple to follow](https://github.com/ggerganov/llama.cpp).
 
-Or...you can use gguf-my-repo which is a huggingface space that will do it for you online: https://huggingface.co/spaces/ggml-org/gguf-my-repo
+Or...you can use [gguf-my-repo](https://huggingface.co/spaces/ggml-org/gguf-my-repo) which is a huggingface space that will do it for you online.

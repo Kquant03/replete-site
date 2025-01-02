@@ -1,4 +1,4 @@
-# **Guide to Model Formats for Artificial Intelligence**
+<Title>Guide to Model Formats for Artificial Intelligence</Title>
 
 *Model formats* refer to the way data is stored and processed by machine learning models. Different model formats have different advantages and trade-offs when it comes to performance, accuracy, and size. In this guide, we will explore some popular model formats used in artificial intelligence (AI) today.
 
@@ -10,9 +10,9 @@ Floating point 32 (fp32) is a widely used model format in deep learning. It uses
 
 Half precision (fp16) is a compact model format that uses only 16 bits per number. This reduces memory usage and improves throughput, making it ideal for quantizing models after they've been converted to this format.
 
-## Base 16 floating point (bf16)
+## Brain Float (bf16)
 
-Base 16 floating point (bf16) is the resulting format of most new models after a pre-train, fine-tune, or merge. This is something you'd run using ExLlama or Transformers model loaders...or you could convert it to f16 and then quantize it from there.
+Brain float (bf16) is the resulting format of most new models after a pre-train, fine-tune, or merge. This is something you'd run using ExLlama or Transformers model loaders...or you could convert it to f16 and then quantize it from there. The term "Brain Float" was coined by Google Brain.
 
 ## Activation-aware Weight Quantization (AWQ)
 
@@ -20,7 +20,7 @@ Activation-aware Weight Quantization (AWQ) is a technique for running models in 
 
 ## GPT-Generated Unified Format (gguf)
 
-GPT-Generated Unified Format (gguf) is the successor to ggml models. These are to be run on llama.cpp with CPU and System RAM inference.
+GPT-Generated Unified Format (gguf) is the successor to ggml models. These are to be run on llama.cpp between both CPU and GPU at the same time.
 
 ## (EXL2)
 

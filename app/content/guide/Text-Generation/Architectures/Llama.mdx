@@ -2,9 +2,9 @@
 <Tagline>Meta's Series of LLMs</Tagline>
 
 (Many thanks to "Chingis" for writing about this architecture. You can find
-  his original paper [here](https://chingisoinar.medium.com/llms-explained-llama-and-its-architecture-part-1-716627e7754c).)
+  his original article [here](https://chingisoinar.medium.com/llms-explained-llama-and-its-architecture-part-1-716627e7754c).)
 
-![Llama Final Architecture](/images/Llama.webp "Llama Final Architecture")
+![Llama Final Architecture](/images/LLaMA.webp "Llama Architecture")
 
 LLaMA is based on the transformer architecture; however, the authors leverage various improvements that were proposed and used in different models such as PaLM.
 
@@ -14,7 +14,7 @@ The figure above shows the final LLaMA architecture at a high level. As seen, LL
 
 RMSNorm performs normalization where each element of x is multiplied by the reciprocal of the square root of the mean of the squares (to avoid negative values) of elements of x, with a small number eps added for numerical stability. Then, it multiplies the normalized output with the learnable *self.weight*.
 
-![RMSNorm](/images/RMS.webp "RMSNorm")
+![RMSNorm](/images/RMS_Norm.webp "RMSNorm")
 
 The RMSNorm is applied to every input of each transformer sub-layer within the TransformerBlock, as shown in the figure above.
 

@@ -1,9 +1,10 @@
-# TIES: Eliminating redundancy and disagreements
+<Title>TIES</Title>
+<Tagline>Eliminating redundancy and disagreements</Tagline>
 
 Introduced in this paper by Yadav et al., TIES-Merging is designed to efficiently merge multiple task-specific models into a single multitask model.
 
 A typical script will look like so:
-```
+```yaml
 models:
   - model: mistralai/Mistral-7B-v0.1
     # no parameters necessary for base model
@@ -20,3 +21,4 @@ base_model: mistralai/Mistral-7B-v0.1
 parameters:
   normalize: true
 dtype: float16
+```

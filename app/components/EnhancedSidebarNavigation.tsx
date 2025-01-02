@@ -144,7 +144,7 @@ const renderFolder = useCallback((folder: Folder, parentPath: string = '', depth
 
   const guideStructure: Folder[] = [
     {
-      name: 'Text-Generation',
+      name: 'Text Generation',
       subfolders: [
         {
           name: 'Architectures',
@@ -153,28 +153,28 @@ const renderFolder = useCallback((folder: Folder, parentPath: string = '', depth
             { name: 'Llama', path: 'Text-Generation/Architectures/Llama' },
             { name: 'Mistral', path: 'Text-Generation/Architectures/Mistral' },
             { name: 'Mixtral', path: 'Text-Generation/Architectures/Mixtral' },
-            { name: 'phi', path: 'Text-Generation/Architectures/phi' },
+            { name: 'Phi', path: 'Text-Generation/Architectures/phi' },
           ],
         },
         {
           name: 'Components',
           files: [
-            { name: 'AddNorm', path: 'Text-Generation/Components/AddNorm' },
-            { name: 'FFNs', path: 'Text-Generation/Components/FFNs' },
-            { name: 'LayerNorm', path: 'Text-Generation/Components/LayerNorm' },
-            { name: 'Linear', path: 'Text-Generation/Components/Linear' },
-            { name: 'MultiLayerPerceptron', path: 'Text-Generation/Components/MultiLayerPerceptron' },
-            { name: 'MultiheadAttention', path: 'Text-Generation/Components/MultiheadAttention' },
-            { name: 'PosEncoding', path: 'Text-Generation/Components/PosEncoding' },
-            { name: 'RMS', path: 'Text-Generation/Components/RMS' },
+            { name: 'Add & Norm', path: 'Text-Generation/Components/AddNorm' },
+            { name: 'Feed-Forward', path: 'Text-Generation/Components/FFNs' },
+            { name: 'Layer Normalization', path: 'Text-Generation/Components/LayerNorm' },
+            { name: 'Linear Layer', path: 'Text-Generation/Components/Linear' },
+            { name: 'Multi-layer Perceptron', path: 'Text-Generation/Components/MultiLayerPerceptron' },
+            { name: 'Multihead Attention', path: 'Text-Generation/Components/MultiheadAttention' },
+            { name: 'Positional Encoding', path: 'Text-Generation/Components/PosEncoding' },
+            { name: 'RMS Normalization', path: 'Text-Generation/Components/RMS' },
             { name: 'RoPE', path: 'Text-Generation/Components/RoPE' },
-            { name: 'SWA', path: 'Text-Generation/Components/SWA' },
-            { name: 'SelfAttention', path: 'Text-Generation/Components/SelfAttention' },
+            { name: 'Sliding Window Attention', path: 'Text-Generation/Components/SWA' },
+            { name: 'Self Attention', path: 'Text-Generation/Components/SelfAttention' },
             { name: 'Softmax', path: 'Text-Generation/Components/Softmax' },
           ],
         },
         {
-          name: 'Fine-Tuning-and-Training',
+          name: 'Fine-Tuning and Training',
           files: [
             { name: 'Axolotl', path: 'Text-Generation/Fine-Tuning-and-Training/Axolotl' },
             { name: 'Llama-Factory', path: 'Text-Generation/Fine-Tuning-and-Training/Llama-Factory' },
@@ -184,7 +184,7 @@ const renderFolder = useCallback((folder: Folder, parentPath: string = '', depth
           ],
         },
         {
-          name: 'Merging-Models',
+          name: 'Merging Models',
           files: [
             { name: 'DARE', path: 'Text-Generation/Merging-Models/DARE' },
             { name: 'FrankenMoE', path: 'Text-Generation/Merging-Models/FrankenMoE' },
@@ -197,7 +197,7 @@ const renderFolder = useCallback((folder: Folder, parentPath: string = '', depth
           ],
         },
         {
-          name: 'Prompt-Templates',
+          name: 'Prompt Templates',
           files: [
             { name: 'Alpaca', path: 'Text-Generation/Prompt-Templates/Alpaca' },
             { name: 'ChatML', path: 'Text-Generation/Prompt-Templates/ChatML' },
@@ -212,12 +212,12 @@ const renderFolder = useCallback((folder: Folder, parentPath: string = '', depth
             { name: 'AWQ', path: 'Text-Generation/Quantization/AWQ' },
             { name: 'ExllamaV2', path: 'Text-Generation/Quantization/ExllamaV2' },
             { name: 'GPTQ', path: 'Text-Generation/Quantization/GPTQ' },
+            { name: 'Imatrix', path: 'Text-Generation/Quantization/imatrix' },
             { name: 'Llama-cpp', path: 'Text-Generation/Quantization/Llama-cpp' },
-            { name: 'Quip-Sharp', path: 'Text-Generation/Quantization/Quip-Sharp' },
           ],
         },
         {
-          name: 'Treasure-Trove',
+          name: 'Treasure Trove',
           files: [
             { name: 'DPO', path: 'Text-Generation/Treasure-Trove/DPO' },
             { name: 'DPOP', path: 'Text-Generation/Treasure-Trove/DPOP' },
@@ -230,15 +230,15 @@ const renderFolder = useCallback((folder: Folder, parentPath: string = '', depth
       ],
       files: [
         { name: 'SillyTavern', path: 'Text-Generation/SillyTavern' },
-        { name: 'Text-Gen-Formats', path: 'Text-Generation/Text-Gen-Formats' },
+        { name: 'Text-Gen Formats', path: 'Text-Generation/Text-Gen-Formats' },
         { name: 'Tokenization', path: 'Text-Generation/Tokenization' },
       ],
     },
     {
-      name: 'Image-Generation',
+      name: 'Image Generation',
       subfolders: [
         {
-          name: 'Extensions-and-Tools',
+          name: 'Extensions and Tools',
           files: [
             { name: 'Adetailer', path: 'Image-Generation/Extensions-and-Tools/Adetailer' },
             { name: 'Animation', path: 'Image-Generation/Extensions-and-Tools/Animation' },
@@ -252,14 +252,14 @@ const renderFolder = useCallback((folder: Folder, parentPath: string = '', depth
         },
       ],
       files: [
-        { name: 'SDArch', path: 'Image-Generation/SDArch' },
-        { name: 'SDXLArch', path: 'Image-Generation/SDXLArch' },
+        { name: 'SD Architecture', path: 'Image-Generation/SDArch' },
+        { name: 'SDXL Architecture', path: 'Image-Generation/SDXLArch' },
         { name: 'Stable Diffusion Prompting', path: 'Image-Generation/Stable-Diffusion-Prompting' },
         { name: 'Installing A1111', path: 'Image-Generation/InstallingA1111' },
       ],
     },
     {
-      name: 'Text-to-Speech',
+      name: 'Text to Speech',
       files: [
         { name: 'OpenVoice', path: 'Text-to-Speech/OpenVoice' },
         { name: 'RVC', path: 'Text-to-Speech/RVC' },

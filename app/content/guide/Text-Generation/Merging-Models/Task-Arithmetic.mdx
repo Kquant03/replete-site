@@ -1,8 +1,11 @@
-# A New Type of Merge
+<Title>Task Arithmetic</Title>
+<Tagline>A New Type of Merge</Tagline>
 
-Task Arithmetic. Computes "task vectors" for each model by subtracting a base model. Merges the task vectors linearly and adds back the base. The config looks like this:
+Computes "task vectors" for each model by subtracting a base model. Merges the task vectors linearly and adds back the base.
 
-```
+
+
+```yaml
 models:
   - model: ise-uiuc_Magicoder-S-CL-7B
     parameters:
@@ -22,3 +25,4 @@ parameters:
   normalize: true
   int8_mask: true
 dtype: float16
+```

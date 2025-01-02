@@ -32,11 +32,11 @@
 .contentPanel {
   max-width: 800px;
   width: 100%;
-  min-height: 500px;
-  margin: 2rem auto;
+  min-height: 300px; /* Reduced from 500px */
+  margin: 1.5rem auto 3rem; /* Adjusted margins for better vertical symmetry */
   background: rgba(13, 17, 23, 0.95);
   border-radius: 8px;
-  padding: 2rem;
+  padding: 2.5rem 2.5rem 2rem; /* Slightly increased horizontal padding */
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
