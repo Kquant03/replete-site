@@ -32,7 +32,7 @@ const initialPipelines: Pipeline[] = [
   {
     name: "System Prompt Generator",
     description: "A simple pipeline to generate system prompts for ShareGPT datasets.",
-    repoUrl: "https://github.com/RepleteAI/text-processor",
+    repoUrl: "https://github.com/Replete-AI/System-Prompt-Generator",
     stars: 0,
     forks: 0,
     tags: ["Python", "Prompt-engineering"]
