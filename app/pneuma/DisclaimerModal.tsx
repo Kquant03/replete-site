@@ -22,7 +22,7 @@ const DisclaimerModal: React.FC<DisclaimerModalProps> = ({
 
   const handleAccept = () => {
     if (privacyChecked && termsChecked && modelChecked && discretionChecked) {
-      localStorage.setItem('pneumaDisclaimerAccepted', 'true');
+      localStorage.setItem('pneumaDisclaimerAccepted_v2', 'true');
       localStorage.setItem('pneumaDisclaimerAcceptedDate', new Date().toISOString());
       onAccept();
     }
@@ -144,7 +144,7 @@ const DisclaimerModal: React.FC<DisclaimerModalProps> = ({
                       <span>
                         I have read and agree to the{' '}
                         <a 
-                          href="/privacy-policy" 
+                          href="/privacy" 
                           target="_blank" 
                           rel="noopener noreferrer"
                         >
@@ -169,7 +169,7 @@ const DisclaimerModal: React.FC<DisclaimerModalProps> = ({
                       <span>
                         I accept the{' '}
                         <a 
-                          href="/terms-of-service" 
+                          href="/tos" 
                           target="_blank" 
                           rel="noopener noreferrer"
                         >
@@ -194,7 +194,7 @@ const DisclaimerModal: React.FC<DisclaimerModalProps> = ({
                       <span>
                         I understand that Pneuma is an AI model and have read about its{' '}
                         <a 
-                          href="/model-information" 
+                          href="https://huggingface.co/Replete-AI/L3.1-Pneuma-8B" 
                           target="_blank" 
                           rel="noopener noreferrer"
                         >

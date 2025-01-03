@@ -164,7 +164,7 @@ const PneumaContent: React.FC = () => {
   const [selectedConversation, setSelectedConversation] = useState<Chat | null>(null);  
   const [isMobile, setIsMobile] = useState(false);
   const [isFirstMessage, setIsFirstMessage] = useState(true);
-  const [hasAcceptedDisclaimer, setHasAcceptedDisclaimer] = useClientSideState('pneumaDisclaimerAccepted', false);
+  const [hasAcceptedDisclaimer, setHasAcceptedDisclaimer] = useClientSideState('pneumaDisclaimerAccepted_v2', false);
   const [showDisclaimer, setShowDisclaimer] = useState(!hasAcceptedDisclaimer);
   const [userSettings, setUserSettings] = useState<UserSettings>({
     temperature: 0.7,

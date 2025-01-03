@@ -1,29 +1,118 @@
 /* app/tos/Tos.module.css */
 .tosContainer {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  margin-top: 3rem; /* Space for header */
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.tosContainer.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.heading {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  color: #7f5af0;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s ease-out forwards 0.3s;
+}
+
+.section {
+  margin-bottom: 3rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s ease-out forwards;
+  animation-delay: calc(var(--section-index, 0) * 0.2s + 0.6s);
+}
+
+.sectionTitle {
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #ffffff;
+  border-bottom: 2px solid #7f5af0;
+  padding-bottom: 0.5rem;
+}
+
+.sectionText {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 1rem;
+}
+
+.sectionText p {
+  margin-bottom: 1rem;
+}
+
+.list {
+  list-style-type: none;
+  padding-left: 1.5rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.list li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #7f5af0;
+}
+
+.link {
+  color: #7f5af0;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+.link:hover {
+  color: #a587ff;
+  text-decoration: underline;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Add responsive styles */
+@media (max-width: 768px) {
+  .tosContainer {
+    padding: 1.5rem;
+  }
+
   .heading {
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin-bottom: 1.5rem;
-    color: #7f5af0;
+    font-size: 2rem;
   }
-  
-  .section {
-    margin-bottom: 2rem;
-  }
-  
+
   .sectionTitle {
-    font-size: 1.8rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-    color: #ffffff;
+    font-size: 1.5rem;
   }
-  
-  .sectionText {
-    font-size: 1.2rem;
-    color: rgba(255, 255, 255, 0.8);
+
+  .sectionText, 
+  .list li {
+    font-size: 1rem;
   }
+}
