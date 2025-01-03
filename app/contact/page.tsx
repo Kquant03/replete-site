@@ -162,33 +162,48 @@ export default function Contact() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(null);
     
     const categoryInfo = category ? CATEGORY_INFO[category] : null;
     if (!categoryInfo) return;
 
-    // Prepare email content with clear structure
-    const emailContent = {
-      name,
-      email,
-      category: categoryInfo.title,
-      formData
-    };
+    try {
+      setIsSubmitting(true);
+      
+      // Prepare email content with clear structure
+      const emailContent = {
+        name,
+        email,
+        category: categoryInfo.title,
+        formData
+      };
 
-    const res = await fetch('/api/contact/send-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(emailContent),
-    });
+      const res = await fetch('/api/contact/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(emailContent),
+      });
 
-    if (res.ok) {
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.message || 'Failed to send message');
+      }
+
       setSubmitted(true);
       setCategory('');
       setFormData({});
       setName('');
       setEmail('');
+    } catch (err) {
+      console.error('Error sending message:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred while sending your message');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -199,6 +214,12 @@ export default function Contact() {
   return (
     <div className={`${styles.contactContainer} ${styles.visible}`}>
       <h1 className={styles.heading}>Contact Us</h1>
+      
+      {error && (
+        <div className={styles.errorMessage}>
+          {error}
+        </div>
+      )}
       
       {submitted ? (
         <div className={styles.successMessage}>
@@ -298,8 +319,12 @@ export default function Contact() {
             </div>
           )}
 
-          <button type="submit" className={styles.submitButton}>
-            Send Message
+          <button 
+            type="submit" 
+            className={styles.submitButton}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Sending...' : 'Send Message'}
           </button>
         </form>
       )}
