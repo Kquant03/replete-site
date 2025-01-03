@@ -16,14 +16,14 @@ export default function TermsOfService() {
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>1. Introduction</h2>
         <p className={styles.sectionText}>
-          Welcome to Replete AI. These Terms of Service ("Terms") govern your access to and use of our website and AI chatbot service, Pneuma ("the Service"). By accessing or using our Service, you agree to be bound by these Terms and our Privacy Policy. If you do not agree to these Terms, please do not use our Service.
+          Welcome to Replete AI. These Terms of Service (&quot;Terms&quot;) govern your access to and use of our website and AI chatbot service, Pneuma (&quot;the Service&quot;). By accessing or using our Service, you agree to be bound by these Terms and our Privacy Policy. If you do not agree to these Terms, please do not use our Service.
         </p>
       </section>
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>2. Age Restrictions</h2>
         <p className={styles.sectionText}>
-          Our Service is not intended for unsupervised use by children under 13 years of age. Users under 13 must have parental guidance and supervision while using the Service. We emphasize that Pneuma is an uncensored AI system capable of generating realistic and potentially mature content. Parents should monitor their children's interactions with the Service.
+          Our Service is not intended for unsupervised use by children under 13 years of age. Users under 13 must have parental guidance and supervision while using the Service. We emphasize that Pneuma is an uncensored AI system capable of generating realistic and potentially mature content. Parents should monitor their children&apos;s interactions with the Service.
         </p>
       </section>
 

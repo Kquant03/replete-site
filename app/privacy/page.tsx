@@ -17,8 +17,8 @@ export default function PrivacyPolicy() {
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Introduction</h2>
         <p className={styles.sectionText}>
-          Welcome to Replete AI ("we," "our," or "us"). This Privacy Policy explains how we collect, use, disclose, 
-          and safeguard your information when you use our website and AI chatbot service, Pneuma ("the Service").
+          Welcome to Replete AI (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). This Privacy Policy explains how we collect, use, disclose, 
+          and safeguard your information when you use our website and AI chatbot service, Pneuma (&quot;the Service&quot;).
         </p>
       </section>
 
@@ -63,7 +63,7 @@ export default function PrivacyPolicy() {
 
         <h3 className={styles.subsectionTitle}>AI Development and Research</h3>
         <ul className={styles.list}>
-          <li>Analysis of conversations to improve Pneuma's responses</li>
+          <li>Analysis of conversations to improve Pneuma&apos;s responses</li>
           <li>Creation of training datasets for model improvement</li>
           <li>Development of AI memory and context retention systems</li>
           <li>Generation and refinement of system prompts</li>

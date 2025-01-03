@@ -20,7 +20,13 @@ interface FormField {
   placeholder?: string;
 }
 
-const CATEGORY_INFO = {
+interface CategoryInfo {
+  title: string;
+  description: string;
+  fields: FormField[];
+}
+
+const CATEGORY_INFO: Record<FormCategory, CategoryInfo> = {
   technical: {
     title: 'Technical Support',
     description: 'Get help with Pneuma, account issues, or technical problems.',
@@ -197,7 +203,7 @@ export default function Contact() {
       {submitted ? (
         <div className={styles.successMessage}>
           <h2>Thank you for your message!</h2>
-          <p>We'll get back to you as soon as possible.</p>
+          <p>We&apos;ll get back to you as soon as possible.</p>
           <button 
             className={styles.button}
             onClick={() => setSubmitted(false)}
