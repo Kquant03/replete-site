@@ -145,7 +145,7 @@ export const BookLandingPage = () => {
                   rel="noopener noreferrer"
                   className={styles.purchaseButton}
                 >
-                  Purchase e-Book
+                  COMING SOON!
                 </a>
               </motion.div>
             </motion.div>
