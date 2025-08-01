@@ -122,9 +122,9 @@ export const BookLandingPage = () => {
                 variants={itemVariants}
               >
                 <p><span className={styles.label}>Author:</span> S.L. Jackson & Stanley Sebastian</p>
-                <p><span className={styles.label}>Published:</span> 2024</p>
+                <p><span className={styles.label}>Published:</span> COMING SOON!</p>
                 <p><span className={styles.label}>Format:</span> e-Book</p>
-                <p><span className={styles.label}>Pages:</span> 60</p>
+                <p><span className={styles.label}>Pages:</span> ~150</p>
                 <p><span className={styles.label}>Price:</span> $14.99</p>
               </motion.div>
 
