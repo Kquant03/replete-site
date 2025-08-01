@@ -111,7 +111,7 @@ export const BookLandingPage = () => {
               >
                 <p>
                   &quot;Patterns of Sentience&quot; delves into the fascinating world of artificial intelligence 
-                  and its profound impact on our society. Written by the Replete AI community, this book 
+                  and its profound impact on our society. Written by the Stanley Sebastian and S.L Jackson, this book 
                   offers a unique perspective on the development and future of AI, exploring the intricate 
                   patterns that emerge as we create increasingly sophisticated artificial minds.
                 </p>
